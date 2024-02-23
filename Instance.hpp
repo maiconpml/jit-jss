@@ -682,6 +682,26 @@ public:
 		return true;
 	}
 
+	void iToR(const vector<unsigned> & starts) const{
+
+    	cout << "library(candela)" << endl;
+    	cout << "data <- list(" << endl;
+    	for(int m = 0; m < M; m++){
+        
+    	    for(int j = 0; j < J;j++){
+				int i  = jmToIndex[j][m];
+    	        cout<<"  list(label = 'task "<< j <<"',name='machine " << m <<"', level=" <<m<<", start="<< starts[i]<<", end="<< starts[i] +  P[i]<<")";
+     	       if( m +1 != M || j+1 != J) cout <<",";
+     	       cout << endl;
+     	   }
+   	 }
+    	cout <<")" << endl;
+    	cout << "candela('GanttChart'," << endl;
+    	cout << "    data=data, label='name', " << endl;
+    	cout << "    start='start', end='end', level='level', " << endl;
+    	cout << "    width=" <<J*100 <<", height="<< M * 100<<")" << endl;
+	}
+	
 	void printPenaltys(const vector<unsigned> & starts) const{
 		
 		double sumTardPenaltys = 0;
