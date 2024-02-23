@@ -1,0 +1,22 @@
+#START#
+
+TotalJobs: 3 TotalMachines: 3 Replications: 3 2 3 
+Costs:
+	5 8 5 
+	4 8 2 
+	9 3 7 
+
+Job: 2
+
+	0 -> 1
+	1 -> 2
+
+Job: 2
+
+	2 -> 1
+	1 -> 0
+
+Job: 2
+
+	0 -> 2
+	2 -> 1

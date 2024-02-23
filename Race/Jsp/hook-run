@@ -1,0 +1,14 @@
+EXE=../../main
+
+# The instance name and the candidate id are the first parameters
+INSTANCE_PATH=$1
+CANDIDATE=$2
+
+#All other parameters are the candidate parameters to be passed
+shift 2 || exit 1
+CAND_PARAMS=$*
+
+
+$EXE $INSTANCE_PATH $CANDIDATE --timeLog false --maxSecs 180.0 ${CAND_PARAMS}
+
+exit 0

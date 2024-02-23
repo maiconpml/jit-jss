@@ -1,0 +1,9 @@
+#name switch type Interval condition
+tenure "--tenure " i (4, 12)
+initialjumpLimit "--initialjumpLimit " i (500, 4000)
+decreaseDivisor "--decreaseDivisor " i (3, 10)
+bjSize "--bjSize " i (1, 10)
+maxD "--maxD " i (10, 200)
+acceptAlpha "--acceptAlpha " r  (0.0, 1.0)
+sizePBubble "--sizePBubble " i (1, 10)
+bubbleP "--bubbleP " r (0.4, 0.99) 

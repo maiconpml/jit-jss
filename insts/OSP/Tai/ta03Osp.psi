@@ -1,0 +1,20 @@
+#START#
+
+TotalJobs: 4 TotalMachines: 4
+Costs:
+	2 5 38 66 
+	85 68 14 95 
+	54 77 89 38 
+	59 63 72 51 
+
+Job: 0
+
+
+Job: 0
+
+
+Job: 0
+
+
+Job: 0
+

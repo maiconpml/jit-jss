@@ -1,0 +1,13 @@
+*~
+CMakeCache.txt
+CMakeFiles/*
+CPackConfig.cmake
+CPackSourceConfig.cmake
+Makefile
+cmake_install.cmake
+main
+mainParallel
+mainTester
+insts/MSP/MixedLiu/Reproduce/CMakeFiles/
+insts/MSP/MixedLiu/Reproduce/testerMain
+

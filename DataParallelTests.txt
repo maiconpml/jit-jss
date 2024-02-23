@@ -1,0 +1,34 @@
+
+#machines replicated random number of time in [1,5]
+Gholami: results of (Gholami 2014)
+Insa: Our intial solution
+CritVan: Alogrithm of (Tadeu Ritt 2015) SBPO parallel machines
+AllDelay: New neighbouhood - trasnposes the operations that postponned the starts of any operation in the critical path 
+Bottleneck: Reoptimizes the bottleneck job or machine
+Disp. Job Tail: Dispatch in order of longest tail first - greedy allocation in parallel machines
+Disp. Job Opers: Dispatch in order of largest number of job operations remaining - greedy allocation in parallel machines
+Inst 		nxm			Gholami		Insa		CritVan		All Delay	Constructive	extended
+La01f		10x5		652			880			558			558**		645
+La02f					667			757			655			655**		803
+La03f					523			558			494			494**		539
+La04f					416			762			531			371**		415
+La05f					463*		648			463			463*		468
+La06f		15x5		828			1149		815			815**		865
+La07f					708			754			695			695**		736
+La08f					863*		1208		863			863*		883
+La09f					769*		955			769			769*		769
+La10f					444			869			521			443**		443
+La11f		20x5		543			774			537			532**		561
+La12f					701*		1026		701			701*		739
+La13f					474			985			554			386**		422
+La14f					692			1087		577			566**		648
+La15f					1202		1451		1142		1142**		1189
+La16f		10x10		819**		1291		930			930			818
+La17f					795**		1272		1033		978			778
+La18f					663**		1028		1028		874			663
+La19f					719**		1143		1070		1046		811
+La20f					756**		1174		1174		1174		756
+
+
+
+

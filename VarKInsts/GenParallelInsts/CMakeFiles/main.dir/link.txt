@@ -1,0 +1,1 @@
+/usr/bin/c++   -g -ggdb -Wall -Wno-unknown-pragmas -fPIC -DIL_STD -fexceptions -std=c++0x -g   CMakeFiles/main.dir/main.cpp.o  -o main -rdynamic -lboost_program_options -lboost_timer -lboost_system -lboost_chrono -lrt 

@@ -1,0 +1,7 @@
+1. Tabu.hpp::Tabu::nosmuTabu::1186 - bigJobFirst ser verdadeiro ou falso faz parte da heurística utilizada?
+
+
+2. Instance.hpp::Inst::parse:: - o que é posets?
+
+
+3. Instance.hpp::Inst::lowerBoundNasiri::557 - o que é minHead e minTail?

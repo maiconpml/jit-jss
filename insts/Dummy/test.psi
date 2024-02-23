@@ -1,0 +1,14 @@
+#START#
+
+TotalJobs: 2 TotalMachines: 3
+Costs:
+	600 800 600
+	500 100 200
+
+Job: 2
+	0 -> 1
+	1 -> 2
+
+Job: 2
+	0 -> 1
+	1 -> 2
