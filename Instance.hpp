@@ -701,7 +701,7 @@ public:
     	cout << "    start='start', end='end', level='level', " << endl;
     	cout << "    width=" <<J*100 <<", height="<< M * 100<<")" << endl;
 	}
-	
+
 	void printPenaltys(const vector<unsigned> & starts) const{
 		
 		double sumTardPenaltys = 0;
@@ -731,6 +731,21 @@ public:
 
 		cout << sumPenaltys << " " << sumEarlPenaltys << " " << sumTardPenaltys << endl;
 
+		#ifdef PRINT_SCHEDULE
+
+		for(int j = 0; j < J; ++j){
+
+			for(int m = 0; m< M; ++m ){
+				int i  = jmToIndex[j][m];
+				curStart = starts[i];
+				curDueDate = deadlines[i];
+				curEarliness = max(curDueDate-(curStart+(int)P[i]), 0);
+				curTardiness = max((curStart+(int)P[i])-curDueDate, 0);
+				printf("[%03u|%03u|%03u|%2.0f|%2.0f] ", starts[i], P[i],deadlines[i],curEarliness,curTardiness);
+			}
+			cout << endl;
+		}
+		#endif 
 	}
 
 
