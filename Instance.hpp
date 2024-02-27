@@ -711,7 +711,7 @@ public:
 		int curStart;
 		double curTardiness;
 		double curEarliness;
-
+		this->iToR(starts);
 		for(int o=1; o<O; ++o){
 
 			curStart = starts[o];
@@ -745,6 +745,7 @@ public:
 			}
 			cout << endl;
 		}
+
 		#endif 
 	}
 

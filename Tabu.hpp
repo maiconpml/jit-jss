@@ -1217,6 +1217,7 @@ namespace Tabu {
 
 		cout << instPath << " " << lowerBound << " ";
 		theState.printPenaltys();
+		
 		// called here
 	}
 

@@ -2742,6 +2742,7 @@ public:
 		cout << makes << " ";
 
 		inst.printPenaltys(schedule);
+		
 	}
 
 	

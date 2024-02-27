@@ -1,11 +1,38 @@
-instances/loose-equal/test1_10x2.txt 152 152 407.34 150.2 257.14
+instances/loose-equal/test1_10x2.txt 152 152 library(candela)
+data <- list(
+  list(label = 'task 0',name='machine 0', level=0, start=94, end=114),
+  list(label = 'task 1',name='machine 0', level=0, start=20, end=41),
+  list(label = 'task 2',name='machine 0', level=0, start=70, end=89),
+  list(label = 'task 3',name='machine 0', level=0, start=16, end=20),
+  list(label = 'task 4',name='machine 0', level=0, start=41, end=59),
+  list(label = 'task 5',name='machine 0', level=0, start=59, end=70),
+  list(label = 'task 6',name='machine 0', level=0, start=114, end=148),
+  list(label = 'task 7',name='machine 0', level=0, start=9, end=16),
+  list(label = 'task 8',name='machine 0', level=0, start=0, end=9),
+  list(label = 'task 9',name='machine 0', level=0, start=89, end=94),
+  list(label = 'task 0',name='machine 1', level=1, start=139, end=152),
+  list(label = 'task 1',name='machine 1', level=1, start=76, end=98),
+  list(label = 'task 2',name='machine 1', level=1, start=98, end=106),
+  list(label = 'task 3',name='machine 1', level=1, start=106, end=139),
+  list(label = 'task 4',name='machine 1', level=1, start=7, end=20),
+  list(label = 'task 5',name='machine 1', level=1, start=37, end=51),
+  list(label = 'task 6',name='machine 1', level=1, start=0, end=7),
+  list(label = 'task 7',name='machine 1', level=1, start=20, end=25),
+  list(label = 'task 8',name='machine 1', level=1, start=25, end=37),
+  list(label = 'task 9',name='machine 1', level=1, start=51, end=76)
+)
+candela('GanttChart',
+    data=data, label='name', 
+    start='start', end='end', level='level', 
+    width=1000, height=200)
+407.34 150.2 257.14
 [094|020|044| 0|70] [139|013|075| 0|77] 
 [020|021|043| 2| 0] [076|022|081| 0|17] 
 [070|019|054| 0|35] [098|008|068| 0|38] 
 [016|004|035|15| 0] [106|033|081| 0|58] 
-[041|018|087|28| 0] [007|013|050|30| 0] - 
+[041|018|087|28| 0] [007|013|050|30| 0] 
 [059|011|053| 0|17] [037|014|040| 0|11] 
-[114|034|070| 0|78] [000|007|028|21| 0] -
+[114|034|070| 0|78] [000|007|028|21| 0] 
 [009|007|035|19| 0] [020|005|059|34| 0] 
 [000|009|044|35| 0] [025|012|074|37| 0] 
-[089|005|071| 0|23] [051|025|057| 0|19] -
+[089|005|071| 0|23] [051|025|057| 0|19] 
