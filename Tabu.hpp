@@ -868,6 +868,7 @@ namespace Tabu {
 				break;
 
 			pPos = candVisitOrder[curVisitOrderI].second;
+			// changed 
 			o1 = cands[pPos].first;
 			o2 = cands[pPos].second;
 			assert(o1 != 0);
@@ -887,8 +888,8 @@ namespace Tabu {
 
 
 
-				if(theState.makes < chosenMakes) { //PENAL //alt makes
-					chosenMakes = theState.makes;
+				if(theState.penalties < chosenMakes) { //PENAL //alt makes
+					chosenMakes = theState.penalties;
 					chosenO1 = o1;
 					chosenO2 = o2;
 					chosenSwapPos = pPos;
@@ -929,8 +930,8 @@ namespace Tabu {
 
 
 				//aspiration
-				if(theState.makes < aspiration   &&   theState.makes < chosenMakes) {
-					chosenMakes = theState.makes;
+				if(theState.penalties < aspiration   &&   theState.penalties < chosenMakes) {
+					chosenMakes = theState.penalties;
 					chosenO1 = o1;
 					chosenO2 = o2;
 					chosenSwapPos = pPos;
@@ -994,18 +995,18 @@ namespace Tabu {
 #endif
 		theState.setMeta(dists, lastOp, prev, indeg, Q);
 		assert( ! cycle);
-		assert(theState.makes >= lowerBound);
+		assert(theState.penalties >= lowerBound);
 		//PENAL assert
 
 
-		if(theState.makes < printWhenBetter) { //PENAL alt makes
+		if(theState.penalties < printWhenBetter) { //PENAL alt makes
 			if(timeLog) {
 				resultList.push_back(preString + unsigStr(theState.makes) + " " +doubleStr((duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count())/1000.0) + " d");
 				//cout << preString << theState.makes << " " << (duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count())/1000.0 << " d" << endl;
 			}
 		}
 
-		if(theState.makes == lowerBound) //PENAL alt makes
+		if(theState.penalties == lowerBound) //PENAL alt makes
 			return true;
 
 		State curState = theState;
@@ -1054,7 +1055,7 @@ namespace Tabu {
 			noImproveIters++;
 
 			//STEP Checking for cycles
-			makesCycleDetected = State::detectRepeat(oldValues, posCurMakes, cycleLastPos, cycleL, curState.makes, newBestFound, maxD, maxLen); //PENAL alt makes
+			makesCycleDetected = State::detectRepeat(oldValues, posCurMakes, cycleLastPos, cycleL, curState.penalties, newBestFound, maxD, maxLen); //PENAL alt makes
 
 			// STEP get trio from jump list or compute cands
 			if((curJumpLimit < noImproveIters)   ||    makesCycleDetected   ||   emptyNeighbourhood) {//JUMPING
@@ -1116,8 +1117,10 @@ namespace Tabu {
 
 			//STEP Go to neighbour
 			//nsp(curState, lastOp, tabuList, cands, theState.makes, dists, prev, indeg, Q, heads, tails, lbOrder);
+			
 			if( ! cands.empty())
- 				nsp(curState, lastOp, tabuList, cands, theState.makes, dists, prev, indeg, Q, heads, tails, lbOrder);
+				
+ 				nsp(curState, lastOp, tabuList, cands, theState.penalties, dists, prev, indeg, Q, heads, tails, lbOrder);
 			else
 				emptyNeighbourhood = true;
 
@@ -1134,19 +1137,19 @@ namespace Tabu {
 			}
 
 			//STEP new best ??
-			if(curState.makes < theState.makes) {
+			if(curState.penalties < theState.penalties) {
 
-				if(curState.makes < printWhenBetter)
+				if(curState.penalties < printWhenBetter)
 					if(timeLog) {
-						resultList.push_back(preString + unsigStr(curState.makes) + " " + doubleStr((duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count())/1000.0) + " d");
+						resultList.push_back(preString + unsigStr(curState.penalties) + " " + doubleStr((duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count())/1000.0) + " d");
 						//cout << preString << curState.makes << " " << (duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count())/1000.0 << " d" << endl;
 					}
 
 				noImproveIters = 0;
 				theState = curState;
 				curJumpLimit = initialjumpLimit;
-				assert(curState.makes >= lowerBound);
-				if(curState.makes == lowerBound) //Stop -> Optimal
+				assert(curState.penalties >= lowerBound);
+				if(curState.penalties == lowerBound) //Stop -> Optimal
 					return true;
 
 				newBestFound= true;
@@ -1200,8 +1203,8 @@ namespace Tabu {
 
 		theState.millisecsFound = duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count();;
 
-		
-		evolveTabu(theState, tenure, initialjumpLimit, jumpLimitDecrease, bjSize, tpStart, dists, prev, indeg, Q, maxD, maxC, lowerBound, maxMillisecs, UINT_MAX, "", heads, tails, timeLog, false);
+		// changed lower bound to 0
+		evolveTabu(theState, tenure, initialjumpLimit, jumpLimitDecrease, bjSize, tpStart, dists, prev, indeg, Q, maxD, maxC, 0, maxMillisecs, UINT_MAX, "", heads, tails, timeLog, false);
 		//evolveTabu(newState, tenure, initialjumpLimit, jumpLimitDecrease, bjSize, tpStart, dists, prev, indeg, Q, maxD, maxC, lowerBound, maxMillisecs, bestState.makes, preString, heads, tails, timeLog, lowerBoundOrder);
 		
 

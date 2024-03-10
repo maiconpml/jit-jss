@@ -683,7 +683,7 @@ public:
 	}
 
 	void iToR(const vector<unsigned> & starts) const{
-
+		#ifdef RFILE
     	cout << "library(candela)" << endl;
     	cout << "data <- list(" << endl;
     	for(int m = 0; m < M; m++){
@@ -700,9 +700,32 @@ public:
     	cout << "    data=data, label='name', " << endl;
     	cout << "    start='start', end='end', level='level', " << endl;
     	cout << "    width=" <<J*100 <<", height="<< M * 100<<")" << endl;
+		#endif
 	}
+	void calcPenalties(const vector<unsigned> & starts, unsigned &  ePenalty, unsigned & lPenalty){
+		ePenalty = 0;
+		lPenalty = 0;
+		double sumPenaltys = 0;
+		int curDueDate;
+		int curStart;
+		double curTardiness;
+		double curEarliness;
+		this->iToR(starts);
+		for(int o=1; o<O; ++o){
 
-	void printPenaltys(const vector<unsigned> & starts) const{
+			curStart = starts[o];
+			curDueDate = deadlines[o];
+			
+			curEarliness = max(curDueDate-(curStart+(int)P[o]), 0);
+			curTardiness = max((curStart+(int)P[o])-curDueDate, 0);
+
+			assert(curEarliness >= 0);
+			assert(curTardiness >= 0);
+			ePenalty += curEarliness;
+			lPenalty += curTardiness;
+		}
+	}
+	void printPenaltys(const vector<unsigned> & starts, const unsigned & makes) const{
 		
 		double sumTardPenaltys = 0;
 		double sumEarlPenaltys = 0;
@@ -729,7 +752,7 @@ public:
 
 		sumPenaltys = sumEarlPenaltys + sumTardPenaltys;
 
-		cout << sumPenaltys << " " << sumEarlPenaltys << " " << sumTardPenaltys << endl;
+		cout << sumPenaltys << " " << sumEarlPenaltys << " " << sumTardPenaltys << " "<< makes << endl;
 
 		#ifdef PRINT_SCHEDULE
 

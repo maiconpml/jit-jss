@@ -5,7 +5,7 @@
 #pragma once
 
 #define NDEBUG
-
+//#define RFILE
 using namespace std;
 
 #include <assert.h>

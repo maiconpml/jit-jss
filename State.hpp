@@ -2292,9 +2292,9 @@ public:
 		return false; 
 	}
 
+	
 
-
-
+	
 
 	//does not set critic but do set makes
 	//@return: cycle?
@@ -2373,7 +2373,8 @@ public:
 				}			
 			}
 		}
-
+		inst.calcPenalties(dists, ePenalty,lPenalty);
+		penalties = ePenalty + lPenalty;
 		return qAccess<inst.O-1;
 	}
 
@@ -2741,7 +2742,7 @@ public:
 		vector<unsigned> schedule = genSchedule();
 		cout << makes << " ";
 
-		inst.printPenaltys(schedule);
+		inst.printPenaltys(schedule,makes);
 		
 	}
 
@@ -5650,4 +5651,7 @@ public:
 		vector<unsigned> _mach;
 		unsigned makes;
 		unsigned millisecsFound;
+		unsigned lPenalty;
+		unsigned ePenalty;
+		unsigned penalties;
 	};
