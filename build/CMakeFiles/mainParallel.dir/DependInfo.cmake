@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/mnt/c/Users/ivanderlei/Documents/GitHub/fast-psp/mainParallel.cpp" "CMakeFiles/mainParallel.dir/mainParallel.cpp.o" "gcc" "CMakeFiles/mainParallel.dir/mainParallel.cpp.o.d"
+  "/mnt/d/if/projeto/fast-psp/mainParallel.cpp" "CMakeFiles/mainParallel.dir/mainParallel.cpp.o" "gcc" "CMakeFiles/mainParallel.dir/mainParallel.cpp.o.d"
   )
 
 # Targets to which this target links.
