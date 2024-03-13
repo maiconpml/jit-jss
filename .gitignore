@@ -11,5 +11,5 @@ mainTester
 insts/MSP/MixedLiu/Reproduce/CMakeFiles/
 insts/MSP/MixedLiu/Reproduce/testerMain
 .vs
-out
-build
+out/
+build/
