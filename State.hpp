@@ -1754,7 +1754,18 @@ public:
 		}
 	}
 
+	static void fillCandidatesTest1(vector<pair<unsigned, unsigned>> & cands, vector<unsigned> & mach, unsigned lastOp) {
 
+		assert(mach.size() == inst.O);
+		assert(cands.capacity() == inst.O);
+
+		for (unsigned currentOp = 1; currentOp < inst.O; ++currentOp) {
+
+			if (inst.operToJ[currentOp] != inst.operToJ[mach[currentOp]] && mach[currentOp]) {
+				cands.push_back(pair<unsigned, unsigned>(currentOp, mach[currentOp]));
+			}
+		}
+	}
 
 	static void fillCandidatesN5(vector<pair<unsigned, unsigned>> & cand, vector<unsigned> & jobBb, vector<unsigned> & machBb, const vector<unsigned> & critic) {
 		assert(cand.capacity() == inst.O);
