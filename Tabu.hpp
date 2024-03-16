@@ -818,8 +818,8 @@ namespace Tabu {
 		assert(indeg.size() == inst.O);
 		assert(Q.size() == inst.O);
 		State testState = theState;
-		bool cycle;
 #endif
+		bool cycle;
 		unsigned o1;
 		unsigned o2;
 		vector<bool> stillToTestCandPos(cands.size(), true);
@@ -880,15 +880,15 @@ namespace Tabu {
 				theState.swap(o1, o2);
 				assert(theState.verify());
 
-#ifndef NDEBUG
+//#ifndef NDEBUG
 				cycle = 
-#endif
+//#endif
 					theState.setMeta(dists, lastOp, prev, indeg, Q);
-				assert( ! cycle);
+				//assert( ! cycle);
 
 
 
-				if(theState.penalties < chosenMakes) { //PENAL //alt makes
+				if(theState.penalties < chosenMakes && !cycle) { //PENAL //alt makes
 					chosenMakes = theState.penalties;
 					chosenO1 = o1;
 					chosenO2 = o2;
@@ -922,15 +922,15 @@ namespace Tabu {
 				assert(theState.verify());
 
 
-#ifndef NDEBUG
+//#ifndef NDEBUG
 				cycle = 
-#endif
+//#endif
 					theState.setMeta(dists, lastOp, prev, indeg, Q);
-				assert( ! cycle);
+				//assert( ! cycle);
 
 
 				//aspiration
-				if(theState.penalties < aspiration   &&   theState.penalties < chosenMakes) {
+				if(theState.penalties < aspiration   &&   theState.penalties < chosenMakes && !cycle) {
 					chosenMakes = theState.penalties;
 					chosenO1 = o1;
 					chosenO2 = o2;
@@ -1085,7 +1085,7 @@ namespace Tabu {
 				jumped = false;
 				cands.clear();
 
-				State::computeCritic(critic, lastOp, prev);
+				/*State::computeCritic(critic, lastOp, prev);
 #ifndef NDEBUG
 				assert( ! critic.empty());
 				assert(critic.size() < inst.O);
@@ -1096,7 +1096,9 @@ namespace Tabu {
 				for(unsigned pos=0; pos<critic.size()-1; pos++)
 					assert(curState.job[critic[pos]] == critic[pos+1]    ||    curState.mach[critic[pos]] == critic[pos+1]);
 #endif
-				State::fillCandidatesN5(cands, jobBb, machBb, critic);
+				State::fillCandidatesN5(cands, jobBb, machBb, critic);*/
+
+				State::fillCandidatesTest1(cands, curState.mach, lastOp);
 			}
 			assert( ! cands.empty());
 
