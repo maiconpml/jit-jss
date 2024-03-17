@@ -710,7 +710,7 @@ public:
 		int curStart;
 		double curTardiness;
 		double curEarliness;
-		this->iToR(starts);
+		//this->iToR(starts);
 		for(int o=1; o<O; ++o){
 
 			curStart = starts[o];
@@ -757,6 +757,8 @@ public:
 		#ifdef PRINT_SCHEDULE
 
 		for(int j = 0; j < J; ++j){
+			
+			printf("%02d - ", j);
 
 			for(int m = 0; m< M; ++m ){
 				int i  = jmToIndex[j][m];
