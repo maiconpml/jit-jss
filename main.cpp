@@ -81,12 +81,14 @@ int main(int argc, char *argv[]) {
 		const bool lowerBoundOrder = vm["lowerBoundOrder"].as<bool>();
 		const string perturbTypeStr = vm["perturbType"].as<string>();
 		unsigned perturbType;
-		if(perturbTypeStr.compare("insa")==0)
+		if (perturbTypeStr.compare("insa") == 0)
 			perturbType = INSA_PERTURB;
-		else if(perturbTypeStr.compare("bubble")==0)
+		else if (perturbTypeStr.compare("bubble") == 0)
 			perturbType = BUBBLE_PERTURB;
-		else if(perturbTypeStr.compare("mix")==0)
+		else if (perturbTypeStr.compare("mix") == 0)
 			perturbType = MIX_PERTURB;
+		else if (perturbTypeStr.compare("gt") == 0)
+			perturbType = GT;
 		else
 			throw errorText("Invalid opetion for perturbation","main","main");
 		const double scaleTime = vm["scaleTime"].as<double>();
@@ -121,7 +123,7 @@ int main(int argc, char *argv[]) {
 		if(searchTypeStr.compare("iteratedGreedy")==0) {
 			IG::iteratedGreedy(instPath,  name, maxSecs, seed, tenure, initialjumpLimit, decreaseDivisor, increaseIters, bjSize, maxD,maxC, acceptAlpha, sizePBubble, sizePInsa, timeLog, lowerBoundOrder, perturbType, scheduleFile, bubbleP, mixProb);
 		} else if(searchTypeStr.compare("tabuSearch")==0) {
-		    Tabu::nosmuTabu(instPath, name, tenure, initialjumpLimit, decreaseDivisor, bjSize, maxD, maxC, INSA_START, 1000*maxSecs, timeLog);
+		    Tabu::nosmuTabu(instPath, name, tenure, initialjumpLimit, decreaseDivisor, bjSize, maxD, maxC, GT, 1000*maxSecs, timeLog);
 		} else {
 			throw errorText("Invalid option for searchType","main","main");
 		}

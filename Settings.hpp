@@ -57,6 +57,7 @@ unsigned currentShownSeconds;
 
 #define INSA_START  1001
 #define RAND_START 1002
+#define GT 1003
 
 #define LOCAL_SEARCH_INTENS 2001 //TODO
 #define TABU_INTENS 2002

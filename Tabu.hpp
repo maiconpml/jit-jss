@@ -1189,7 +1189,9 @@ namespace Tabu {
 
 		unsigned lowerBound = inst.lowerBoundTkz(indeg, Q);
 
-		if(startType==INSA_START)
+		if (startType == GT)
+			theState.gifflerThompson();
+		else if(startType==INSA_START)
 			theState.insaPsp(bigJobFirst, indeg, Q, heads, tails, invertedQ, reach);
 		else if(startType==RAND_START)
 			theState.makeRand(indeg, Q);
