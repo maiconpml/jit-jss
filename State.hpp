@@ -1838,7 +1838,7 @@ public:
 		}
 	}
 
-	static void fillCandidatesTest1(vector<pair<unsigned, unsigned>> & cands, vector<unsigned> & mach, unsigned lastOp) {
+	static void fillCandidatesTest1(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& mach) {
 
 		assert(mach.size() == inst.O);
 		assert(cands.capacity() == inst.O);
@@ -1846,6 +1846,19 @@ public:
 		for (unsigned currentOp = 1; currentOp < inst.O; ++currentOp) {
 
 			if (inst.operToJ[currentOp] != inst.operToJ[mach[currentOp]] && mach[currentOp]) {
+				cands.push_back(pair<unsigned, unsigned>(currentOp, mach[currentOp]));
+			}
+		}
+	}
+
+	static void fillCandidatesTest2(vector<pair<unsigned, unsigned>> & cands, vector<unsigned> & mach, vector<unsigned> starts) {
+
+		assert(mach.size() == inst.O);
+		assert(cands.capacity() == inst.O);
+
+		for (unsigned currentOp = 1; currentOp < inst.O; ++currentOp) {
+
+			if (inst.operToJ[currentOp] != inst.operToJ[mach[currentOp]] && mach[currentOp] && (starts[currentOp]+inst.P[currentOp]) < inst.deadlines[currentOp] && (starts[mach[currentOp]]+inst.P[mach[currentOp]]) > inst.deadlines[mach[currentOp]]) {
 				cands.push_back(pair<unsigned, unsigned>(currentOp, mach[currentOp]));
 			}
 		}
