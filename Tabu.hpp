@@ -938,7 +938,7 @@ namespace Tabu {
 				}
 
 				//crap moves
-				if(chosenMakes==UINT_MAX   &&   fnpStateAge < tabuList.age(o1, o2)) {
+				if(chosenMakes==UINT_MAX   &&   fnpStateAge < tabuList.age(o1, o2) && !cycle) {
 				    oldestO1 = o1;
 					oldestO2 = o2;
 					oldestFnpSwapPos = pPos;
