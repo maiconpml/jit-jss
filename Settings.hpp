@@ -20,9 +20,10 @@ unsigned currentShownSeconds;
 #endif
 
 #define UINFTY UINT_MAX
-//#define PRINT_SCHEDULE
 #define ANALYZE_MODE
 
+//#define PRINT_SCHEDULE
+//#define PRINT_ONLY_IS
 //#define REOPT_GAPS
 
 
