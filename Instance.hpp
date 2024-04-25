@@ -764,10 +764,24 @@ public:
 
 		sumPenaltys = sumEarlPenaltys + sumTardPenaltys;
 
-		cout << sumPenaltys << " " << sumEarlPenaltys << " " << sumTardPenaltys << " "<< makes << endl;
+		cout << sumPenaltys << " " << sumEarlPenaltys << " " << sumTardPenaltys << " ";
+
+#ifdef NEIGHBOURS_NB
+		double mean = 0;
+		for (double n : neigh) {
+			mean += n;
+		}
+		if (neigh.size()) {
+			mean = mean / neigh.size();
+		}
+		cout << mean << " ";
+#endif // NEIGHBOURS_NB
+
+		cout << endl;
+
 
 		#ifdef PRINT_SCHEDULE
-
+		
 		for(int j = 0; j < J; ++j){
 			
 			printf("%02d - ", j);

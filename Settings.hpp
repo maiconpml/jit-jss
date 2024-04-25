@@ -24,6 +24,8 @@ unsigned currentShownSeconds;
 
 //#define PRINT_SCHEDULE
 //#define PRINT_ONLY_IS
+//#define NEIGHBOURS_NB 
+
 //#define REOPT_GAPS
 
 
@@ -84,6 +86,9 @@ unsigned currentShownSeconds;
 
 vector<string> resultList;
 
+#ifdef NEIGHBOURS_NB
+	vector<double> neigh;
+#endif // NEIGHBOURS_NB
 
 //#define HALF_MAKES
 

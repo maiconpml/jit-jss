@@ -1097,6 +1097,9 @@ namespace Tabu {
 					assert(curState.job[critic[pos]] == critic[pos+1]    ||    curState.mach[critic[pos]] == critic[pos+1]);
 #endif
 				State::fillCandidatesN5(cands, jobBb, machBb, critic);*/
+#ifdef NEIGHBOURS_NB
+				neigh.push_back(cands.size());
+#endif // NEIGHBOURS_NB
 
 				State::fillCandidatesTest1(cands, curState.mach, lastOp);
 			}
