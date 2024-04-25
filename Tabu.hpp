@@ -1201,6 +1201,12 @@ namespace Tabu {
 		unsigned lastOp;
 		theState.setMeta(dists, lastOp, prev, indeg, Q);
 
+#ifdef PRINT_ONLY_IS
+
+		cout << instPath << " " << theState.penalties << endl;
+		return;
+#endif
+
 		//unsigned startMakes = theState.makes;
 		//unsigned startMillisecs = duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count();
 		//theState.millisecsFound = startMillisecs;
