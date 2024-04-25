@@ -1204,7 +1204,8 @@ namespace Tabu {
 
 #ifdef PRINT_ONLY_IS
 
-		cout << instPath << " " << theState.penalties << endl;
+		cout << instPath << " " << lowerBound << " ";
+		theState.printPenaltys();
 		return;
 #endif
 
@@ -1234,11 +1235,6 @@ namespace Tabu {
 		
 		// called here
 	}
-
-
-
-
-
 
 #ifdef PARALLEL_MACHS
 
