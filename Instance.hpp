@@ -682,6 +682,17 @@ public:
 		return true;
 	}
 
+	void iToR2(const vector<unsigned>& starts) {
+
+#ifdef RFILE
+		cout << "machine task timeStart timeEnd";
+
+		for (unsigned i = 1; i < O; ++i) {
+			cout << operToM[i] << " " << operToJ[i] << " " << starts[i] << " " << starts[i] + P[i] << endl;
+		}
+#endif
+	}
+
 	void iToR(const vector<unsigned> & starts) const{
 		#ifdef RFILE
     	cout << "library(candela)" << endl;
@@ -702,6 +713,7 @@ public:
     	cout << "    width=" <<J*100 <<", height="<< M * 100<<")" << endl;
 		#endif
 	}
+
 	void calcPenalties(const vector<unsigned> & starts, unsigned &  ePenalty, unsigned & lPenalty){
 		ePenalty = 0;
 		lPenalty = 0;
@@ -725,7 +737,7 @@ public:
 			lPenalty += curTardiness;
 		}
 	}
-	void printPenaltys(const vector<unsigned> & starts, const unsigned & makes) const{
+	void printPenaltys(const vector<unsigned> & starts, const unsigned & makes){
 		
 		double sumTardPenaltys = 0;
 		double sumEarlPenaltys = 0;
@@ -734,7 +746,7 @@ public:
 		int curStart;
 		double curTardiness;
 		double curEarliness;
-		this->iToR(starts);
+		iToR2(starts);
 		for(int o=1; o<O; ++o){
 
 			curStart = starts[o];
