@@ -2483,6 +2483,8 @@ public:
 		}
 		inst.calcPenalties(dists, ePenalty,lPenalty);
 		penalties = ePenalty + lPenalty;
+		startTime = dists;
+		
 		return qAccess<inst.O-1;
 	}
 
@@ -5757,6 +5759,7 @@ public:
 		vector<unsigned> _job;
 		vector<unsigned> mach;
 		vector<unsigned> _mach;
+		vector<unsigned> startTime;
 		unsigned makes;
 		unsigned millisecsFound;
 		unsigned lPenalty;
