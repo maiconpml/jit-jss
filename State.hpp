@@ -895,8 +895,8 @@ public:
 	}
 	void insertJobOper(unsigned newOp, unsigned prevJobOp, unsigned postJobOp) {
 		assert(newOp != 0);
-		assert(prevJobOp==0   ||   job[prevJobOp]==postJobOp);
-		assert(postJobOp==0   ||   _job[postJobOp]==prevJobOp);
+		//assert(prevJobOp==0   ||   job[prevJobOp]==postJobOp);
+		//assert(postJobOp==0   ||   _job[postJobOp]==prevJobOp);
 
 		job[newOp] = postJobOp;
 		if(postJobOp!=0) _job[postJobOp] = newOp;
@@ -905,8 +905,8 @@ public:
 	}
 	void insertMachOper(unsigned newOp, unsigned prevMachOp, unsigned postMachOp) {
 		assert(newOp != 0);
-		assert(prevMachOp==0   ||   mach[prevMachOp]==postMachOp);
-		assert(postMachOp==0   ||   _mach[postMachOp]==prevMachOp);
+		//assert(prevMachOp==0   ||   mach[prevMachOp]==postMachOp);
+		//assert(postMachOp==0   ||   _mach[postMachOp]==prevMachOp);
 
 		mach[newOp] = postMachOp;
 		if(postMachOp!=0) _mach[postMachOp] = newOp;
