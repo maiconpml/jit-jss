@@ -1096,6 +1096,8 @@ namespace Tabu {
 				State::fillCandidatesN5(cands, jobBb, machBb, critic);*/
 				//State::fillCandidatesTest1(cands, curState.mach);
 				State::fillCandidatesTest2(cands, curState.mach, curState.startTime);
+				State::fillCandidatesTest1(cands, curState.mach);
+				//State::fillCandidatesTest2(cands, curState.mach, curState.startTime);
 #ifdef NEIGHBOURS_NB
 				neigh.push_back(cands.size());
 #endif // NEIGHBOURS_NB
