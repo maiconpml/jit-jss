@@ -26,6 +26,8 @@ unsigned currentShownSeconds;
 //#define PRINT_ONLY_IS
 //#define NEIGHBOURS_NB 
 
+#define SHIFT_OPERS
+
 //#define REOPT_GAPS
 
 

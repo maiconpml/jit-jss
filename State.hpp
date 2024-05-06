@@ -2400,13 +2400,145 @@ public:
 		return false; 
 	}
 
-	
+	//shift early operations making its completion time closer of its due date
+	void shiftOperations(vector<unsigned>& starts, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q) {
 
+		vector<unsigned> newStarts(inst.O, 0);
+		vector<unsigned> startJobSuccessor(inst.J, UINT_MAX);
+		vector<unsigned> startMachSuccessor(inst.M, UINT_MAX);
+
+		unsigned qInsert = Q.size();
+		unsigned curOp;
+		unsigned newMakes = 0;
+		
+		while (qInsert > 0) {
+
+			curOp = Q[--qInsert];
+
+			if (!curOp) continue;
+
+			unsigned sMS = startMachSuccessor[inst.operToM[curOp]];
+			unsigned sJS = startJobSuccessor[inst.operToJ[curOp]];
+
+			unsigned shiftLimit = min(sJS, sMS);
+
+			unsigned shiftTarget = min(inst.deadlines[curOp], shiftLimit);
+			shiftTarget = shiftTarget - inst.P[curOp];
+
+			newStarts[curOp] = max(starts[curOp], shiftTarget);
+
+			newMakes = max(newStarts[curOp]+inst.P[curOp], newMakes);
+
+			startJobSuccessor[inst.operToJ[curOp]] = newStarts[curOp];
+			startMachSuccessor[inst.operToM[curOp]] = newStarts[curOp];
+ 		}
+
+		assert(newMakes >= makes);
+		makes = newMakes;
+
+		starts = newStarts;
+	}
+
+	//set makes with shift to minimize earliness penalties
+	bool setMetaWithShift(vector<unsigned>& dists, unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q) {
+		assert(isAlloced());
+		assert(dists.size() == inst.O);
+		assert(prev.size() == inst.O);
+		assert(indeg.size() == inst.O);
+		assert(Q.size() == inst.O);
+
+		unsigned qInsert = 0;
+		unsigned qAccess = 0;
+
+		unsigned curOp;
+		unsigned newOp;
+
+		unsigned newMax;
+
+		makes = 0;
+
+		fill(dists.begin(), dists.end(), 0);
+		fill(indeg.begin(), indeg.end(), 0);
+
+		for (unsigned o = 1; o < inst.O; o++) {
+			if (_job[o] != 0)
+				indeg[o]++;
+			if (_mach[o] != 0)
+				indeg[o]++;
+			if (indeg[o] == 0) {
+				prev[o] = 0;
+				Q[qInsert++] = o;
+			}
+		}
+
+		//assert(qInsert>0);
+
+		while (qAccess < qInsert) {
+			assert(qAccess < Q.size());
+			curOp = Q[qAccess++];
+
+			assert(indeg[curOp] == 0);
+
+			newMax = dists[curOp] + inst.P[curOp];
+			if (makes < newMax) {
+				makes = newMax;
+				lastOp = curOp;
+			}
+
+			//from JOB
+			newOp = job[curOp];
+			if (newOp != 0) {
+				assert(indeg[newOp] > 0);
+				indeg[newOp]--;
+				if (indeg[newOp] == 0) {
+					assert(qInsert < Q.size() - 1);
+					Q[qInsert++] = newOp;
+				}
+				if (dists[newOp] < newMax) {
+					dists[newOp] = newMax;
+					prev[newOp] = curOp;
+				}
+			}
+
+			//from MACH
+			newOp = mach[curOp];
+			if (newOp != 0) {
+				assert(indeg[newOp] > 0);
+				indeg[newOp]--;
+				if (indeg[newOp] == 0) {
+					assert(qInsert < Q.size() - 1);
+					Q[qInsert++] = newOp;
+				}
+				if (dists[newOp] < newMax) {
+					dists[newOp] = newMax;
+					prev[newOp] = curOp;
+				}
+			}
+		}
+
+		inst.calcPenalties(dists, ePenalty, lPenalty);
+		unsigned testPenalties = ePenalty + lPenalty;
+
+		shiftOperations(dists, prev, indeg, Q);
+
+		inst.calcPenalties(dists, ePenalty, lPenalty);
+		penalties = ePenalty + lPenalty;
+		startTime = dists;
+
+		assert(penalties <= testPenalties);
+
+		return qAccess < inst.O - 1;
+	}
 	
 
 	//does not set critic but do set makes
 	//@return: cycle?
 	bool setMeta(vector<unsigned> & dists, unsigned & lastOp, vector<unsigned> & prev, vector<unsigned> & indeg, vector<unsigned> & Q)  {
+
+#ifdef SHIFT_OPERS
+		return setMetaWithShift(dists, lastOp, prev, indeg, Q);
+#endif //SHIFT_OPERS
+
 		assert(isAlloced());
 		assert(dists.size() == inst.O);
 		assert(prev.size() == inst.O);
