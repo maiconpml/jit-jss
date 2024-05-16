@@ -983,7 +983,7 @@ namespace Tabu {
 	//printWhenBetter use 0 to not print. will print preString makes seconds (according to tpSTart) d 
 	bool evolveTabu(State & theState, unsigned tenure, unsigned initialjumpLimit, unsigned decreaseDivisor, unsigned bjSize, const high_resolution_clock::time_point & tpStart, vector<unsigned> & dists, vector<unsigned> & prev, vector<unsigned> & indeg, vector<unsigned> & Q, const unsigned maxD, const unsigned maxC, const unsigned lowerBound, unsigned maxMillisecs, unsigned printWhenBetter, const string & preString, vector<unsigned> & heads, vector<unsigned> & tails, bool timeLog, bool lbOrder)  {
 #ifndef NDEBUG
-		unsigned testMakes;
+		//unsigned testMakes;
 		bool cycle;
 #endif
 		unsigned lastOp;

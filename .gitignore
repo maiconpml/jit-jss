@@ -13,3 +13,5 @@ insts/MSP/MixedLiu/Reproduce/testerMain
 .vs
 out/
 build
+release
+debug
