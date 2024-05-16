@@ -686,7 +686,7 @@ public:
 
 		//propagating forward from each element in item
 		for(unsigned fromOp : (type==JOB ? inst.jobOpers[index] : inst.machOpers[index])) {
-			assert(Q[operPos[fromOp]] = fromOp);			
+			assert(Q[operPos[fromOp]] == fromOp);			
 			fill(reach.begin(), reach.end(), false);
 			reach[fromOp] = true;
 			for(unsigned aPos=operPos[fromOp]; aPos<=maxPos; aPos++) {
@@ -1722,7 +1722,7 @@ public:
 
 		unsigned completionTime;
 		unsigned earlCompletion;
-		unsigned mach;
+		unsigned mach = 0;
 		unsigned auxStartTime;
 
 		for (unsigned op : inst.roots) {
@@ -2517,7 +2517,10 @@ public:
 		}
 
 		inst.calcPenalties(dists, ePenalty, lPenalty);
+
+#ifndef NDEBUG
 		unsigned testPenalties = ePenalty + lPenalty;
+#endif
 
 		shiftOperations(dists, prev, indeg, Q);
 
@@ -2979,7 +2982,6 @@ public:
 		return inst.verifySchedule(schedule, testMakes);
 	}
 
-	bool printPenaltys(){
 
 		vector<unsigned> schedule = genSchedule();
 		cout << makes << " ";

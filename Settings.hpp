@@ -4,7 +4,7 @@
 
 #pragma once
 
-#define NDEBUG
+//#define NDEBUG
 //#define RFILE
 using namespace std;
 

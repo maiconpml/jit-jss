@@ -568,7 +568,7 @@ public:
 #ifdef VANILLA_PSS
 		double totalOS = 0.0;
 
-		for(const Poset p : posets) {
+		for(const Poset &p : posets) {
 			totalOS += p.orderStr();
 		}
 
@@ -717,13 +717,12 @@ public:
 	void calcPenalties(const vector<unsigned> & starts, unsigned &  ePenalty, unsigned & lPenalty){
 		ePenalty = 0;
 		lPenalty = 0;
-		double sumPenaltys = 0;
 		int curDueDate;
 		int curStart;
 		double curTardiness;
 		double curEarliness;
 		//this->iToR(starts);
-		for(int o=1; o<O; ++o){
+		for(unsigned o=1; o<O; ++o){
 
 			curStart = starts[o];
 			curDueDate = deadlines[o];
@@ -747,7 +746,7 @@ public:
 		double curTardiness;
 		double curEarliness;
 		iToR2(starts);
-		for(int o=1; o<O; ++o){
+		for(unsigned o=1; o<O; ++o){
 
 			curStart = starts[o];
 			curDueDate = deadlines[o];
@@ -933,7 +932,6 @@ public:
 		//unsigned bufferT;
 		double bufferT;
 		vector<pair<unsigned, unsigned>> order;
-		unsigned auxJSize;
 		unsigned fstM, sndM;
 		unsigned fstO, sndO;
 		vector<unsigned> fromDummy;
