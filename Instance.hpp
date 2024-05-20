@@ -379,89 +379,6 @@ public:
 #endif
 	}
 
-
-	// LB1 = max{min{rl : l in Mi} + sum[l in Mi] + min{ql : l in Mi} : i in {1,...,m}}
-	//rl and ql are not straight heads/tails but the sum of all elements that come before it
-	unsigned lowerBoundAllBefore() const {
-		assert(O > 0);
-
-		vector<unsigned> sumBefore(O, 0);
-		vector<unsigned> sumAfter(O,0);
-		vector<bool> reach(O);
-		vector<unsigned> Q(O, 0);
-		unsigned qInsert;
-		unsigned qAccess;
-		unsigned curOp;
-
-		unsigned minHead;
-		unsigned minTail;
-		unsigned machT;
-		unsigned lb = 0;
-		
-		for(unsigned o=1; o<O; o++) {
-			fill(reach.begin(), reach.end(), false);
-			qInsert = 0;
-			qAccess = 0;
-			Q[qInsert++] = o;
-			while(qAccess < qInsert) {
-				curOp = Q[qAccess++];
-				assert(operToJ[o] == operToJ[curOp]);
-				for(unsigned no : next[curOp]) {
-					if( ! reach[no]) {
-						reach[no] = true;
-						assert(qInsert < O);
-						Q[qInsert++] = no;
-					}
-				}
-			}
-
-			for(unsigned targO=1; targO<O; targO++) {
-				if(reach[targO])
-					sumBefore[targO] += P[o];
-			}
-		}
-
-		for(unsigned o=1; o<O; o++) {
-			fill(reach.begin(), reach.end(), false);
-			qInsert = 0;
-			qAccess = 0;
-			Q[qInsert++] = o;
-			while(qAccess < qInsert) {
-				curOp = Q[qAccess++];
-				assert(operToJ[o] == operToJ[curOp]);
-				for(unsigned no : prev[curOp]) {
-					if( ! reach[no]) {
-						reach[no] = true;
-						assert(qInsert < O);
-						Q[qInsert++] = no;
-					}
-				}
-			}
-
-			for(unsigned targO=1; targO<O; targO++) {
-				if(reach[targO])
-					sumAfter[targO] += P[o];
-			}
-		}
-
-
-		for(const vector<unsigned> & aMach : machOpers) {
-			minHead = UINT_MAX;
-			minTail = UINT_MAX;
-			machT = 0;
-
-			for(unsigned o : aMach) {
-				assert(o!=0);
-				assert(o<O);
-				minHead = min(minHead, sumBefore[o]);
-				minTail = min(minTail, sumAfter[o]);
-				machT += P[o];
-			}
-			lb = max(lb, minHead+machT+minTail);
-		}
-		return lb;
-	}
-
 	//max for each machine: of min head + min tail + procTs of that machine
 	unsigned lowerBoundNasiri(vector<unsigned> & indeg, vector<unsigned> & Q) const {
 		assert(O > 0);
@@ -496,19 +413,6 @@ public:
 			lb = max(lb, minHead+machT+minTail);
 		}
 		return lb;
-	}
-
-	double avrgOrderStr() const {
-
-		double totalOS = 0.0;
-
-		for(const Poset &p : posets) {
-			totalOS += p.orderStr();
-		}
-
-		totalOS /= (double)(posets.size());
-
-		return totalOS;
 	}
 
 	//max of lowerBoundnasiri and job lower bound
@@ -613,34 +517,30 @@ public:
 
 	void iToR2(const vector<unsigned>& starts) {
 
-#ifdef RFILE
 		cout << "machine task timeStart timeEnd";
 
 		for (unsigned i = 1; i < O; ++i) {
 			cout << operToM[i] << " " << operToJ[i] << " " << starts[i] << " " << starts[i] + P[i] << endl;
 		}
-#endif
 	}
 
 	void iToR(const vector<unsigned> & starts) const{
-		#ifdef RFILE
-    	cout << "library(candela)" << endl;
-    	cout << "data <- list(" << endl;
-    	for(int m = 0; m < M; m++){
+    cout << "library(candela)" << endl;
+    cout << "data <- list(" << endl;
+    for(unsigned m = 0; m < M; m++){
         
-    	    for(int j = 0; j < J;j++){
+			for(unsigned j = 0; j < J;j++){
 				int i  = jmToIndex[j][m];
-    	        cout<<"  list(label = 'task "<< j <<"',name='machine " << m <<"', level=" <<m<<", start="<< starts[i]<<", end="<< starts[i] +  P[i]<<")";
-     	       if( m +1 != M || j+1 != J) cout <<",";
-     	       cout << endl;
-     	   }
-   	 }
-    	cout <<")" << endl;
-    	cout << "candela('GanttChart'," << endl;
-    	cout << "    data=data, label='name', " << endl;
-    	cout << "    start='start', end='end', level='level', " << endl;
-    	cout << "    width=" <<J*100 <<", height="<< M * 100<<")" << endl;
-		#endif
+    	  cout<<"  list(label = 'task "<< j <<"',name='machine " << m <<"', level=" <<m<<", start="<< starts[i]<<", end="<< starts[i] +  P[i]<<")";
+     	  if( m +1 != M || j+1 != J) cout <<",";
+     	  cout << endl;
+     	}
+   	}
+    cout <<")" << endl;
+    cout << "candela('GanttChart'," << endl;
+    cout << "    data=data, label='name', " << endl;
+    cout << "    start='start', end='end', level='level', " << endl;
+    cout << "    width=" <<J*100 <<", height="<< M * 100<<")" << endl;
 	}
 
 	void calcPenalties(const vector<unsigned> & starts, unsigned &  ePenalty, unsigned & lPenalty){
@@ -675,7 +575,12 @@ public:
 		int curStart;
 		double curTardiness;
 		double curEarliness;
+
+#ifdef RFILE
 		iToR2(starts);
+		return;
+#endif //RFILE
+
 		for(unsigned o=1; o<O; ++o){
 
 			curStart = starts[o];
@@ -693,6 +598,26 @@ public:
 
 		sumPenaltys = sumEarlPenaltys + sumTardPenaltys;
 
+#ifdef PRINT_SCHEDULE
+
+		for (unsigned j = 0; j < J; ++j) {
+
+			printf("%02d - ", j);
+
+			for (unsigned m = 0; m < M; ++m) {
+				int i = jmToIndex[j][m];
+				curStart = starts[i];
+				curDueDate = deadlines[i];
+				curEarliness = max(curDueDate - (curStart + (int)P[i]), 0);
+				curTardiness = max((curStart + (int)P[i]) - curDueDate, 0);
+				printf("[%03u|%03u|%03u|%2.0f|%2.0f] ", starts[i], P[i], deadlines[i], curEarliness, curTardiness);
+			}
+			cout << endl;
+		}
+
+		return;
+#endif //PRINT_SCHEDULE
+
 		cout << sumPenaltys << " " << sumEarlPenaltys << " " << sumTardPenaltys << " ";
 
 #ifdef NEIGHBOURS_NB
@@ -707,26 +632,6 @@ public:
 #endif // NEIGHBOURS_NB
 
 		cout << endl;
-
-
-#ifdef PRINT_SCHEDULE
-		
-		for(int j = 0; j < J; ++j){
-			
-			printf("%02d - ", j);
-
-			for(int m = 0; m< M; ++m ){
-				int i  = jmToIndex[j][m];
-				curStart = starts[i];
-				curDueDate = deadlines[i];
-				curEarliness = max(curDueDate-(curStart+(int)P[i]), 0);
-				curTardiness = max((curStart+(int)P[i])-curDueDate, 0);
-				printf("[%03u|%03u|%03u|%2.0f|%2.0f] ", starts[i], P[i],deadlines[i],curEarliness,curTardiness);
-			}
-			cout << endl;
-		}
-
-#endif //PRINT_SCHEDULE
 	}
 
 
@@ -943,72 +848,3 @@ public:
 
 };
 Inst inst;
-
-class ElementProb {
-
-#define LEEWAY_PRECISION 100
-
-public:
-	ElementProb() {}
-	~ElementProb() { }
-
-	//JOB/MACH - index
-	pair<int, unsigned> randElement() const {
-		int type;
-		unsigned index;
-
-		unsigned r = random_number<unsigned>(0, maxRand-1);
-
-		if(r<maxRandMach) {
-			type = MACH;
-			index = r/LEEWAY_PRECISION;
-			assert(index<inst.M);
-		} else {
-			type = JOB;
-			r -= maxRandMach;
-			assert(r<maxRandJob);
-			assert(r<mapJob.size());
-			index = mapJob[r];
-		}
-		
-		return pair<int, unsigned>(type,index);
-	}
-
-
-
-	void setMap() {
-		assert(inst.O > 0);
-
-		vector<unsigned> chance(inst.J);
-		unsigned mapIndex = 0;
-
-		maxRandJob = 0;
-		maxRandMach = LEEWAY_PRECISION * inst.M;
-
-		for(unsigned j=0; j<inst.J; j++) {
-#ifdef VANILLA_PSS
-			chance[j] = LEEWAY_PRECISION * (1.0 - (inst.posets[j].orderStr()));
-#endif //VANILLA_PSS
-
-			assert(chance[j] <= LEEWAY_PRECISION);
-			maxRandJob += chance[j];
-		}
-		
-		mapJob.resize(maxRandJob);
-
-		for(unsigned j=0; j<inst.J; j++) {
-			for(unsigned r=0; r<chance[j]; r++) {
-				mapJob[mapIndex++] = j;
-			}
-		}
-
-		maxRand = maxRandJob + maxRandMach;
-	}
-
-	unsigned maxRand;
-	unsigned maxRandJob;//upper bound for random number to be selected
-	unsigned maxRandMach;
-	//cummulative chance for jobs - machines not in here since they are 1 always
-	vector<unsigned> mapJob;
-};
-

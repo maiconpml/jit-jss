@@ -13,8 +13,6 @@
 
 typedef unsigned ItalianoNode;
 
-
-
 template <unsigned Size>
 struct ClosedGraph {
   struct Vertex {

@@ -11,7 +11,6 @@ using namespace boost;
 #include "Settings.hpp"
 #include "State.hpp"
 #include "Tabu.hpp"
-#include "Iterated.hpp"
 
 int main(int argc, char *argv[]) {
 	
