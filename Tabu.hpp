@@ -877,7 +877,7 @@ namespace Tabu {
 			if(tabuList.canMove(o1, o2)) {
 				stillToTestCandPos[pPos] = false;
 
-				theState.swap(o1, o2);
+				theState.testSwap(o1, o2);
 				assert(theState.verify());
 
 //#ifndef NDEBUG
@@ -895,7 +895,7 @@ namespace Tabu {
 					chosenSwapPos = pPos;
 				}
 				//undoing the swap
-				theState.swap(o2, o1);
+				theState.testSwap(o2, o1);
 				assert(theState.verify());
 				assert(theState == testState);
 			}
@@ -918,7 +918,7 @@ namespace Tabu {
 
 				assert(! tabuList.canMove(o1, o2));
 
-				theState.swap(o1, o2);
+				theState.testSwap(o1, o2);
 				assert(theState.verify());
 
 
@@ -945,7 +945,7 @@ namespace Tabu {
 					fnpStateAge = tabuList.age(o1, o2);
 				}
 
-				theState.swap(o2, o1);
+				theState.testSwap(o2, o1);
 				assert(theState.verify());
 				assert(theState == testState);
 			}
@@ -957,7 +957,7 @@ namespace Tabu {
 			assert(chosenO1 != 0   &&   chosenO1 < inst.O);
 			assert(chosenO2 != 0   &&   chosenO2 < inst.O);
 			assert(chosenSwapPos < cands.size());
-			theState.swap(chosenO1, chosenO2);
+			theState.testSwap(chosenO1, chosenO2);
 			tabuList.insert(chosenO1, chosenO2);
 			cands.erase(cands.begin() + chosenSwapPos);
 		} else {
@@ -967,7 +967,7 @@ namespace Tabu {
 			assert(oldestO1 != 0   &&   oldestO1 < inst.O);
 			assert(oldestO2 != 0   &&   oldestO2 < inst.O);
 			assert(fnpStateAge >= 0);
-			theState.swap(oldestO1, oldestO2);
+			theState.testSwap(oldestO1, oldestO2);
 			tabuList.passTime(tabuList.timeToLeave(oldestO1, oldestO2));
 			tabuList.insert(oldestO1, oldestO2);
 			cands.erase(cands.begin() + oldestFnpSwapPos);
@@ -1094,8 +1094,9 @@ namespace Tabu {
 					assert(curState.job[critic[pos]] == critic[pos+1]    ||    curState.mach[critic[pos]] == critic[pos+1]);
 #endif
 				State::fillCandidatesN5(cands, jobBb, machBb, critic);*/
-				State::fillCandidatesTest1(cands, curState.mach);
+				//State::fillCandidatesTest4(cands, curState.mach);
 				//State::fillCandidatesTest2(cands, curState.mach, curState.startTime);
+				State::fillCandidatesTest1(cands, curState.mach);
 #ifdef NEIGHBOURS_NB
 				neigh.push_back(cands.size());
 #endif // NEIGHBOURS_NB
@@ -1232,7 +1233,7 @@ namespace Tabu {
 
 		cout << instPath << " " << lowerBound << " ";
 		theState.printPenaltys();
-		
+
 		// called here
 	}
 
