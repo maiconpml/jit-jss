@@ -191,7 +191,43 @@ public:
 		return lb;
 	}
 
+	void testSwap(unsigned o1, unsigned o2) {
 
+		assert(o1 != 0);
+		assert(o2 != 0);
+		assert(o1 != o2);
+
+		unsigned prevO1 = _mach[o1];
+		unsigned postO1 = mach[o1];
+		unsigned prevO2 = _mach[o2];
+		unsigned postO2 = mach[o2];
+
+		mach[o1] = postO2;
+		_mach[o2] = prevO1;
+
+		if (prevO1 != 0) 
+			mach[prevO1] = o2;
+
+		if (postO2 != 0) 
+			_mach[postO2] = o1;
+
+		if (postO1 == o2) {
+			_mach[o1] = o2;
+
+			mach[o2] = o1;
+
+			return;
+		}
+
+		_mach[o1] = prevO2;
+		mach[o2] = postO1;
+
+		if (postO1 != 0) 
+			_mach[postO1] = o2;
+		
+		if (prevO2 != 0) 
+			mach[prevO2] = o1;
+	}
 
 	void swap(unsigned o1, unsigned o2) {
 		assert(o1 != 0);
@@ -1857,9 +1893,45 @@ public:
 		assert(cands.capacity() == inst.O);
 
 		for (unsigned currentOp = 1; currentOp < inst.O; ++currentOp) {
+			assert(inst.operToJ[currentOp] != inst.operToJ[mach[currentOp]]);
 
-			if (inst.operToJ[currentOp] != inst.operToJ[mach[currentOp]] && mach[currentOp] && (starts[currentOp]+inst.P[currentOp]) < inst.deadlines[currentOp] && (starts[mach[currentOp]]+inst.P[mach[currentOp]]) > inst.deadlines[mach[currentOp]]) {
+			if (mach[currentOp] && (starts[currentOp]+inst.P[currentOp]) < inst.deadlines[currentOp] && (starts[mach[currentOp]]+inst.P[mach[currentOp]]) > inst.deadlines[mach[currentOp]]) {
 				cands.push_back(pair<unsigned, unsigned>(currentOp, mach[currentOp]));
+			}
+		}
+	}
+
+	static void fillCandidatesTest3(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& mach, vector<unsigned> starts) {
+
+		for (unsigned curOp = 1; curOp < inst.O; ++curOp) {
+			if (starts[curOp] + inst.P[curOp] >= inst.deadlines[curOp]) continue;
+
+			unsigned nextCurOp = mach[curOp];
+
+			while (nextCurOp != 0) {
+				assert(inst.operToJ[curOp] != inst.operToJ[nextCurOp]);
+
+				if (starts[nextCurOp] + inst.P[nextCurOp] > inst.deadlines[nextCurOp]) {
+					cands.push_back(pair<unsigned, unsigned>(curOp, nextCurOp));
+				}
+
+				nextCurOp = mach[nextCurOp];
+			}
+		}
+	}
+
+	static void fillCandidatesTest4(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& mach) {
+
+		for (unsigned curOp = 1; curOp < inst.O; ++curOp) {
+
+			unsigned nextCurOp = mach[curOp];
+
+			while (nextCurOp != 0) {
+				assert(inst.operToJ[curOp] != inst.operToJ[nextCurOp]);
+
+				cands.push_back(pair<unsigned, unsigned>(curOp, nextCurOp));
+
+				nextCurOp = mach[nextCurOp];
 			}
 		}
 	}
@@ -2982,6 +3054,7 @@ public:
 		return inst.verifySchedule(schedule, testMakes);
 	}
 
+	void printPenaltys(){
 
 		vector<unsigned> schedule = genSchedule();
 		cout << makes << " ";
