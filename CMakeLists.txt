@@ -1,7 +1,7 @@
 #tkz-> use: cmake -DBOOST_ROOT="/home/hzpnotoad/Software/boost_1_59_0"
 
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 include(CPack)
 
 project(psp)
@@ -9,7 +9,7 @@ project(psp)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 include(CMakeBuildTypes)
 
-set(CMAKE_CXX_FLAGS "-g -ggdb -Wall -Wno-unknown-pragmas -fPIC -DIL_STD -fexceptions -std=c++0x")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -ggdb -Wall -Wno-unknown-pragmas -fPIC -DIL_STD -fexceptions -std=c++0x")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -mtune=native")
 
 #find_package(cplex)
@@ -28,11 +28,14 @@ link_directories(${Boost_LIBRARY_DIRS})
 #set(single_targets main mainIG mainInstChars mainRace mainTester mainPrepBatcher)
 #set(single_targets main mainTester mainIg mainTimedIg mainRace mainTimedIgLbOrdered mainParallel)
 #set(single_targets mainTester mainIg mainTimedIg mainRace mainTimedIgLbOrdered)
-set(single_targets mainTester main mainParallel)
-foreach(target ${single_targets})
-  add_executable(${target} ${target}.cpp )
-  target_link_libraries(${target} ${Boost_LIBRARIES} rt)
-endforeach(target)
+#set(single_targets main)
+#foreach(target ${single_targets})
+#  add_executable(${target} ${target}.cpp )
+#  target_link_libraries(${target} ${Boost_LIBRARIES} rt)
+#endforeach(target)
+
+add_executable(main main.cpp)
+target_link_libraries(main ${Boost_LIBRARIES} rt)
 
 #add_executable(intershop intershop.cpp jv/lap.cpp)
 #target_link_libraries(intershop ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} rt)

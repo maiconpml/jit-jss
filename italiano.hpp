@@ -78,8 +78,8 @@ struct ClosedGraph {
     swap(cga.cycle,cgb.cycle);
     for(unsigned i=0; i<n; i++)
       for(unsigned j=0; j<n; j++)
-	swap(cga.r[i][j],cgb.r[i][j]);
-	swap(cga.a, cgb.a);
+	      swap(cga.r[i][j],cgb.r[i][j]);
+	  swap(cga.a, cgb.a);
   }
   
   // is there a path from u to v?

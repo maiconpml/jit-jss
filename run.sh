@@ -1,7 +1,6 @@
-cdyourfilenames=`ls ./$1`
-echo path lowerB makes penaltys earlPenaltys tarPenaltys  
-for eachfile in $yourfilenames
+filenames=`ls ./$1`
+echo path lowerb makes penalties earlPenal tarPenal
+for eachfile in $filenames
 do
-    #echo $eachfile
-    ./build/main $1$eachfile lalala --searchType tabuSearch
+	./build/main $1/$eachfile lala --searchType tabuSearch --maxSecs 10
 done

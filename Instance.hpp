@@ -568,7 +568,7 @@ public:
 #ifdef VANILLA_PSS
 		double totalOS = 0.0;
 
-		for(const Poset p : posets) {
+		for(const Poset &p : posets) {
 			totalOS += p.orderStr();
 		}
 
@@ -682,8 +682,19 @@ public:
 		return true;
 	}
 
-	void iToR(const vector<unsigned> & starts) const{
+	void iToR2(const vector<unsigned>& starts) {
 
+#ifdef RFILE
+		cout << "machine task timeStart timeEnd";
+
+		for (unsigned i = 1; i < O; ++i) {
+			cout << operToM[i] << " " << operToJ[i] << " " << starts[i] << " " << starts[i] + P[i] << endl;
+		}
+#endif
+	}
+
+	void iToR(const vector<unsigned> & starts) const{
+		#ifdef RFILE
     	cout << "library(candela)" << endl;
     	cout << "data <- list(" << endl;
     	for(int m = 0; m < M; m++){
@@ -700,9 +711,32 @@ public:
     	cout << "    data=data, label='name', " << endl;
     	cout << "    start='start', end='end', level='level', " << endl;
     	cout << "    width=" <<J*100 <<", height="<< M * 100<<")" << endl;
+		#endif
 	}
 
-	void printPenaltys(const vector<unsigned> & starts) const{
+	void calcPenalties(const vector<unsigned> & starts, unsigned &  ePenalty, unsigned & lPenalty){
+		ePenalty = 0;
+		lPenalty = 0;
+		int curDueDate;
+		int curStart;
+		double curTardiness;
+		double curEarliness;
+		//this->iToR(starts);
+		for(unsigned o=1; o<O; ++o){
+
+			curStart = starts[o];
+			curDueDate = deadlines[o];
+			
+			curEarliness = max(curDueDate-(curStart+(int)P[o]), 0);
+			curTardiness = max((curStart+(int)P[o])-curDueDate, 0);
+
+			assert(curEarliness >= 0);
+			assert(curTardiness >= 0);
+			ePenalty += curEarliness;
+			lPenalty += curTardiness;
+		}
+	}
+	void printPenaltys(const vector<unsigned> & starts, const unsigned & makes){
 		
 		double sumTardPenaltys = 0;
 		double sumEarlPenaltys = 0;
@@ -711,8 +745,8 @@ public:
 		int curStart;
 		double curTardiness;
 		double curEarliness;
-		this->iToR(starts);
-		for(int o=1; o<O; ++o){
+		iToR2(starts);
+		for(unsigned o=1; o<O; ++o){
 
 			curStart = starts[o];
 			curDueDate = deadlines[o];
@@ -729,11 +763,27 @@ public:
 
 		sumPenaltys = sumEarlPenaltys + sumTardPenaltys;
 
-		cout << sumPenaltys << " " << sumEarlPenaltys << " " << sumTardPenaltys << endl;
+		cout << sumPenaltys << " " << sumEarlPenaltys << " " << sumTardPenaltys << " ";
+
+#ifdef NEIGHBOURS_NB
+		double mean = 0;
+		for (double n : neigh) {
+			mean += n;
+		}
+		if (neigh.size()) {
+			mean = mean / neigh.size();
+		}
+		cout << mean << " ";
+#endif // NEIGHBOURS_NB
+
+		cout << endl;
+
 
 		#ifdef PRINT_SCHEDULE
-
+		
 		for(int j = 0; j < J; ++j){
+			
+			printf("%02d - ", j);
 
 			for(int m = 0; m< M; ++m ){
 				int i  = jmToIndex[j][m];
@@ -882,7 +932,6 @@ public:
 		//unsigned bufferT;
 		double bufferT;
 		vector<pair<unsigned, unsigned>> order;
-		unsigned auxJSize;
 		unsigned fstM, sndM;
 		unsigned fstO, sndO;
 		vector<unsigned> fromDummy;

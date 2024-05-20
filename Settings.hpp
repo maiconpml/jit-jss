@@ -4,8 +4,8 @@
 
 #pragma once
 
-#define NDEBUG
-
+//#define NDEBUG
+//#define RFILE
 using namespace std;
 
 #include <assert.h>
@@ -20,8 +20,13 @@ unsigned currentShownSeconds;
 #endif
 
 #define UINFTY UINT_MAX
-#define PRINT_SCHEDULE
 #define ANALYZE_MODE
+
+//#define PRINT_SCHEDULE
+//#define PRINT_ONLY_IS
+//#define NEIGHBOURS_NB 
+
+#define SHIFT_OPERS
 
 //#define REOPT_GAPS
 
@@ -57,6 +62,7 @@ unsigned currentShownSeconds;
 
 #define INSA_START  1001
 #define RAND_START 1002
+#define GT 1003
 
 #define LOCAL_SEARCH_INTENS 2001 //TODO
 #define TABU_INTENS 2002
@@ -82,6 +88,9 @@ unsigned currentShownSeconds;
 
 vector<string> resultList;
 
+#ifdef NEIGHBOURS_NB
+	vector<double> neigh;
+#endif // NEIGHBOURS_NB
 
 //#define HALF_MAKES
 
