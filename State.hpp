@@ -229,6 +229,24 @@ public:
 			mach[prevO2] = o1;
 	}
 
+	void testSwap(unsigned o1, unsigned o2){
+
+		unsigned prev1 = _mach[o1], prev2 = _mach[o2];
+		unsigned post1 = mach[o1], post2 = mach[o2];
+		
+		mach[o1] = post2;
+		mach[o2] = post1;
+
+		_mach[o2] = prev1;
+		_mach[o1] = prev2;
+		
+
+		mach[prev2]	=o1;
+		if(prev1 !=0) mach[prev1] = o2;
+
+		_mach[post1] = o2;
+		if(post2 !=0) _mach[post2] = o1;
+		}
 	void swap(unsigned o1, unsigned o2) {
 		assert(o1 != 0);
 		assert(o2 != 0);
@@ -1897,6 +1915,31 @@ public:
 
 			if (mach[currentOp] && (starts[currentOp]+inst.P[currentOp]) < inst.deadlines[currentOp] && (starts[mach[currentOp]]+inst.P[mach[currentOp]]) > inst.deadlines[mach[currentOp]]) {
 				cands.push_back(pair<unsigned, unsigned>(currentOp, mach[currentOp]));
+			}	
+		}
+	}
+
+	static void 	fillCandidatesTest3(vector<pair<unsigned, unsigned>> & cands, vector<unsigned> & mach, vector<unsigned> starts,vector<unsigned> job, vector<unsigned> _job) {
+
+		assert(mach.size() == inst.O);
+		assert(cands.capacity() == inst.O);
+
+		for (unsigned currentM = 0;  currentM< inst.M; ++currentM) {
+			vector<unsigned> currentMOps =  inst.machOpers[currentM];
+			for(unsigned currentJM = 0; currentJM < inst.J; currentJM++){
+				if(starts[currentMOps[currentJM]] + inst.P[currentMOps[currentJM]] < inst.deadlines[currentMOps[currentJM]]){
+					unsigned currentOp = mach[currentMOps[currentJM]];
+					while( currentOp != 0){
+						if(starts[currentOp] + inst.P[currentOp] > inst.deadlines[currentOp]){
+							if(starts[currentOp] + inst.P[currentMOps[currentJM]] < starts[job[currentMOps[currentJM]]]){
+								if(starts[currentMOps[currentJM]] > starts[_job[currentOp]] + inst.P[currentOp]){
+									cands.push_back(pair<unsigned, unsigned>(currentMOps[currentJM], currentOp));
+								}
+							}
+						}
+						currentOp = mach[currentOp];
+					}
+				}
 			}
 		}
 	}
