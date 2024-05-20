@@ -1919,31 +1919,6 @@ public:
 		}
 	}
 
-	static void 	fillCandidatesTest3(vector<pair<unsigned, unsigned>> & cands, vector<unsigned> & mach, vector<unsigned> starts,vector<unsigned> job, vector<unsigned> _job) {
-
-		assert(mach.size() == inst.O);
-		assert(cands.capacity() == inst.O);
-
-		for (unsigned currentM = 0;  currentM< inst.M; ++currentM) {
-			vector<unsigned> currentMOps =  inst.machOpers[currentM];
-			for(unsigned currentJM = 0; currentJM < inst.J; currentJM++){
-				if(starts[currentMOps[currentJM]] + inst.P[currentMOps[currentJM]] < inst.deadlines[currentMOps[currentJM]]){
-					unsigned currentOp = mach[currentMOps[currentJM]];
-					while( currentOp != 0){
-						if(starts[currentOp] + inst.P[currentOp] > inst.deadlines[currentOp]){
-							if(starts[currentOp] + inst.P[currentMOps[currentJM]] < starts[job[currentMOps[currentJM]]]){
-								if(starts[currentMOps[currentJM]] > starts[_job[currentOp]] + inst.P[currentOp]){
-									cands.push_back(pair<unsigned, unsigned>(currentMOps[currentJM], currentOp));
-								}
-							}
-						}
-						currentOp = mach[currentOp];
-					}
-				}
-			}
-		}
-	}
-
 	static void fillCandidatesTest3(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& mach, vector<unsigned> starts) {
 
 		for (unsigned curOp = 1; curOp < inst.O; ++curOp) {
