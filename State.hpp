@@ -15,8 +15,6 @@
 #include "Instance.hpp"
 #include "RandomNumberGenerator.hpp"
 
-#include "Analyzer.hpp"
-
 using namespace boost;
 
 

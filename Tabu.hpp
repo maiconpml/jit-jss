@@ -9,10 +9,8 @@
 #include "Settings.hpp"
 #include "Utilities.hpp"
 #include "State.hpp"
-#include "Analyzer.hpp"
 
 using namespace chrono;
-
 
 class TabuList {
 public:
@@ -34,14 +32,10 @@ public:
 		tabu = other.tabu;
 	}
 
-
-
 	TabuList& operator=(TabuList other) {
 		this->swap(other);
 		return *this;
 	}
-
-
 
 	void swap(TabuList& other) {
 		using std::swap;
@@ -50,8 +44,6 @@ public:
 		tabu.resize(boost::extents[other.tabu.shape()[0]][other.tabu.shape()[1]]);
 		swap(tabu,other.tabu);
 	}
-
-
 
 	string toString() const {
 		string str = "";
@@ -64,14 +56,10 @@ public:
 		return str;
 	}
 
-
-
 	void passTime(int time) {
 		assert(time <= tenure);
 		curIter += time;
 	}
-
-
 
 	string listForbidden() const {
 		string str = "";
@@ -91,8 +79,6 @@ public:
 		return str;
 	}
 
-
-
 	void insert(unsigned o1, unsigned o2) {
 		assert(o1!=o2);
 		assert(tenure != 0);
@@ -104,8 +90,6 @@ public:
 		tabu[o1][o2] = curIter+tenure;
 	}
 
-
-
 	bool canMove(unsigned o1, unsigned o2) const {
 		assert(tenure > 0);
 		assert(tabu[o1][o2] <= curIter + tenure);
@@ -113,15 +97,11 @@ public:
 		return tabu[o1][o2] <= curIter;
 	}
 
-
-
 	int age(unsigned o1, unsigned o2) const {
 		assert(tenure + curIter >= tabu[o1][o2]);
 		assert(tabu[o1][o2] == tabu[o2][o1]);
 		return tenure + curIter - tabu[o1][o2];
 	}
-
-
 
 	int timeToLeave(unsigned o1, unsigned o2) const {
 		int delta = tabu[o1][o2] - curIter;
@@ -131,21 +111,16 @@ public:
 		return delta;
 	}
 
-
 	int curIter;
 	int tenure;
 	multi_array<int,2> tabu;
 };
-
-
-
 
 class TabuTrio {
 public:
 	TabuTrio() : dummy(true) {  }
 	TabuTrio(const State & _state, const vector<pair<unsigned,unsigned>> & _cands, const TabuList & _tabuList) : dummy(false), state(_state), cands(_cands), tabuList(_tabuList) {  }
 	~TabuTrio() {  }
-
 
 	string toString() const {
 		string str;
@@ -159,18 +134,11 @@ public:
 		return str;
 	}
 
-
 	bool dummy;
 	State state;
 	vector<pair<unsigned,unsigned>> cands; //cand moves - removed best one which was used
 	TabuList tabuList;
 };
-
-
-
-
-
-
 
 class JumpList {
 public:
@@ -193,8 +161,6 @@ public:
 		return str;
 	}
 
-
-
 	void push(const TabuTrio & tt) {
 		//cout << "\tPUSHED\n" << toString() << endl;
 
@@ -215,8 +181,6 @@ public:
 		ttList[topPos] = tt;
 	}
 
-
-	
 	void updateCands(const vector<pair<unsigned, unsigned>> & cands) {
 		assert( ! empty);
 
@@ -246,8 +210,6 @@ public:
 		}
 	}
 
-
-
 	TabuTrio pop() {
 		if(empty)
 			return TabuTrio();
@@ -267,8 +229,6 @@ public:
 		return ttList[topPos];
 	}
 
-
-
 	bool empty;
 	unsigned basePos;
 	unsigned topPos;
@@ -276,14 +236,8 @@ public:
 	vector<TabuTrio> ttList;
 };
 
-
-
-
-
-
-
-
 namespace Tabu {
+
 	void nsp(State & theState, unsigned & lastOp, TabuList & tabuList, vector<pair<unsigned,unsigned>> & cands, unsigned aspiration, vector<unsigned> & dists, vector<unsigned> & prev, vector<unsigned> & indeg, vector<unsigned> & Q, vector<unsigned> & heads, vector<unsigned> & tails, bool lbOrder) {
 #ifndef NDEBUG
 		assert( ! cands.empty());
@@ -354,15 +308,12 @@ namespace Tabu {
 				theState.testSwap(o1, o2);
 				assert(theState.verify());
 
-//#ifndef NDEBUG
-				cycle = 
-//#endif
-					theState.setMeta(dists, lastOp, prev, indeg, Q);
+				cycle = theState.setMeta(dists, lastOp, prev, indeg, Q);
 				//assert( ! cycle);
 
 
 
-				if(theState.penalties < chosenMakes && !cycle) { //PENAL //alt makes
+				if(theState.penalties < chosenMakes && !cycle) {
 					chosenMakes = theState.penalties;
 					chosenO1 = o1;
 					chosenO2 = o2;
@@ -395,13 +346,8 @@ namespace Tabu {
 				theState.testSwap(o1, o2);
 				assert(theState.verify());
 
-
-//#ifndef NDEBUG
-				cycle = 
-//#endif
-					theState.setMeta(dists, lastOp, prev, indeg, Q);
+				cycle = theState.setMeta(dists, lastOp, prev, indeg, Q);
 				//assert( ! cycle);
-
 
 				//aspiration
 				if(theState.penalties < aspiration   &&   theState.penalties < chosenMakes && !cycle) {
@@ -457,7 +403,6 @@ namespace Tabu {
 	//printWhenBetter use 0 to not print. will print preString makes seconds (according to tpSTart) d 
 	bool evolveTabu(State & theState, unsigned tenure, unsigned initialjumpLimit, unsigned decreaseDivisor, unsigned bjSize, const high_resolution_clock::time_point & tpStart, vector<unsigned> & dists, vector<unsigned> & prev, vector<unsigned> & indeg, vector<unsigned> & Q, const unsigned maxD, const unsigned maxC, const unsigned lowerBound, unsigned maxMillisecs, unsigned printWhenBetter, const string & preString, vector<unsigned> & heads, vector<unsigned> & tails, bool timeLog, bool lbOrder)  {
 #ifndef NDEBUG
-		//unsigned testMakes;
 		bool cycle;
 #endif
 		unsigned lastOp;
@@ -467,25 +412,18 @@ namespace Tabu {
 		theState.setMeta(dists, lastOp, prev, indeg, Q);
 		assert( ! cycle);
 		assert(theState.penalties >= lowerBound);
-		//PENAL assert
 
-
-		if(theState.penalties < printWhenBetter) { //PENAL alt makes
+		if(theState.penalties < printWhenBetter) {
 			if(timeLog) {
-				resultList.push_back(preString + unsigStr(theState.makes) + " " +doubleStr((duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count())/1000.0) + " d");
-				//cout << preString << theState.makes << " " << (duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count())/1000.0 << " d" << endl;
+				resultList.push_back(preString + unsigStr(theState.penalties) + " " +doubleStr((duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count())/1000.0) + " d");
 			}
 		}
 
-		if(theState.penalties == lowerBound) //PENAL alt makes
+		if(theState.penalties == lowerBound)
 			return true;
 
 		State curState = theState;
 		State oldState;
-
-#ifdef HALF_MAKES
-		vector<unsigned> invertTable(inst.O);
-#endif
 
 		vector<unsigned> jobBb;
 		jobBb.reserve(inst.O);
@@ -571,10 +509,10 @@ namespace Tabu {
 				//State::fillCandidatesTest4(cands, curState.mach);
 				//State::fillCandidatesTest2(cands, curState.mach, curState.startTime);
 				State::fillCandidatesTest1(cands, curState.mach);
+
 #ifdef NEIGHBOURS_NB
 				neigh.push_back(cands.size());
 #endif // NEIGHBOURS_NB
-
 			}
 			assert( ! cands.empty());
 
@@ -593,11 +531,8 @@ namespace Tabu {
 			}
 #endif //COUNT_STEPS
 
-			//STEP Go to neighbour
-			//nsp(curState, lastOp, tabuList, cands, theState.makes, dists, prev, indeg, Q, heads, tails, lbOrder);
-			
+			//STEP Go to neighbour			
 			if( ! cands.empty())
-				
  				nsp(curState, lastOp, tabuList, cands, theState.penalties, dists, prev, indeg, Q, heads, tails, lbOrder);
 			else
 				emptyNeighbourhood = true;
@@ -620,7 +555,6 @@ namespace Tabu {
 				if(curState.penalties < printWhenBetter)
 					if(timeLog) {
 						resultList.push_back(preString + unsigStr(curState.penalties) + " " + doubleStr((duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count())/1000.0) + " d");
-						//cout << preString << curState.makes << " " << (duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count())/1000.0 << " d" << endl;
 					}
 
 				noImproveIters = 0;
@@ -636,14 +570,12 @@ namespace Tabu {
 				curState.millisecsFound=duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count();
 			}
 		}//end while
+
 		assert(maxMillisecs <= duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count());
 
 		return false;
 	}
 	
-
-
-
 	void nosmuTabu(const string & instPath, const string & name, unsigned tenure, unsigned initialjumpLimit, unsigned jumpLimitDecrease, unsigned bjSize, unsigned maxD, unsigned maxC, unsigned startType, unsigned maxMillisecs, bool timeLog) {
 		high_resolution_clock::time_point tpStart = high_resolution_clock::now();
 
@@ -669,8 +601,6 @@ namespace Tabu {
 			theState.gifflerThompson();
 		else if(startType==INSA_START)
 			theState.insaPsp(bigJobFirst, indeg, Q, heads, tails, invertedQ, reach);
-		else if(startType==RAND_START)
-			theState.makeRand(indeg, Q);
 		else
 			throw errorText("Invalid start option.", "Tabu.hpp","nosmuTabu");
 
@@ -682,33 +612,17 @@ namespace Tabu {
 		cout << instPath << " " << lowerBound << " ";
 		theState.printPenaltys();
 		return;
-#endif
-
-		//unsigned startMakes = theState.makes;
-		//unsigned startMillisecs = duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count();
-		//theState.millisecsFound = startMillisecs;
+#endif //PRINT_ONLY_IS
 
 		theState.millisecsFound = duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count();;
 
-		// changed lower bound to 0
 		evolveTabu(theState, tenure, initialjumpLimit, jumpLimitDecrease, bjSize, tpStart, dists, prev, indeg, Q, maxD, maxC, 0, maxMillisecs, UINT_MAX, "", heads, tails, timeLog, false);
-		//evolveTabu(newState, tenure, initialjumpLimit, jumpLimitDecrease, bjSize, tpStart, dists, prev, indeg, Q, maxD, maxC, lowerBound, maxMillisecs, bestState.makes, preString, heads, tails, timeLog, lowerBoundOrder);
-		
-
-		//unsigned totalMillisecs = duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count();
-
-		//Name    Seed         InitMakes                      InitTime                                        Makes                                         TimeToTarget                                            TotalTime
-		//cout << name << " " << initialjumpLimit << " " << startMakes << " " << startMillisecs/1000.0 << " " << theState.makes << " " <<  theState.millisecsFound/1000.0 <<  " " <<   totalMillisecs/1000.0 << endl;
-		/*for(string s : resultList) 
-			cout << name << " " << initialjumpLimit << " " << s << endl;*/
 		
 		if( ! theState.verifySchedule())
 			throw errorText(theState.toString() + "\n\t\tBad schedule !!!!!","","");
 
 		cout << instPath << " " << lowerBound << " ";
 		theState.printPenaltys();
-
-		// called here
 	}
 }
 

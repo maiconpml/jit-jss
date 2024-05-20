@@ -17,9 +17,6 @@
 
 using namespace boost;
 
-
-
-#ifdef VANILLA_PSS
 class Poset {
 public:
 	Poset(const vector<pair<unsigned, unsigned>> & precs, unsigned _nEl) : nEl(_nEl), children(_nEl), parents(_nEl), cg(_nEl) {
@@ -41,8 +38,6 @@ public:
 	
 	~Poset() {  }
 
-
-
 	bool operator!=(const Poset & p) { return !((*this)==p); }
 	bool operator==(const Poset & p) {
 
@@ -63,8 +58,6 @@ public:
 		return true;
 	}
 	
-
-
 	//@return: created cycle doing so?
 	bool addAll(const vector<pair<unsigned, unsigned>> & precs) {
 		bool anyCycle = false;
@@ -73,7 +66,6 @@ public:
 		}
 		return anyCycle;
 	}
-
 
 	//@return: created cycle doing so?
 	bool addPrec(unsigned from, unsigned to) {
@@ -109,7 +101,6 @@ public:
 		return cg.hasCycle();
 	}
 
-
 	string toString() const {		
 		string str = (cg.hasCycle() ? "\t\tCycle" : "\t\tNo Cycle");
 		str.append("   ;   roots{ ");
@@ -143,7 +134,6 @@ public:
 		return str;
 	}
 	
-
 	double orderStr() const {
 		double os = 0.0;
 
@@ -173,16 +163,12 @@ public:
 	vector<vector<unsigned>> parents;
 	ClosedGraph<MAX_MACHS> cg; //takes into account the transitive closure
 };
-#endif //VANILLA_PSS
-
-
 
 class Inst {
 public:
 	Inst() { }
 	Inst(const string & filePath) { parse(filePath);}
 	~Inst() { }
-
 
 	string toString() const {
 		string str = "";
@@ -201,28 +187,6 @@ public:
 		str.append("\nmSize:");
 		for(unsigned n : mSize)
 			str.append(" " + unsigStr(n));
-		/*
-		str.append("\njStart:");
-		for(unsigned pos : jStart)
-			str.append(" " + unsigStr(pos));
-		str.append("\nmStart:");
-		for(unsigned pos : mStart)
-			str.append(" " + unsigStr(pos));
-		*/
-		/*
-		str.append("\noperJobBeg:");
-		for(unsigned pos : operJobBeg)
-			str.append(" " + unsigStr(pos));
-		str.append("\noperJobEnd:");
-		for(unsigned pos : operJobEnd)
-			str.append(" " + unsigStr(pos));
-		str.append("\noperMachBeg:");
-		for(unsigned pos : operMachBeg)
-			str.append(" " + unsigStr(pos));
-		str.append("\noperMachEnd:");
-		for(unsigned pos : operMachEnd)
-			str.append(" " + unsigStr(pos));
-		*/
 
 		str.append("\njobOpers: ");
 		for(const vector<unsigned> & aJob : jobOpers) {
@@ -244,7 +208,6 @@ public:
 		for(unsigned pos : operToM)
 			str.append(" " + unsigStr(pos));
 
-#ifdef VANILLA_PSS		
 		str.append("\njmToIndex: ");
 		assert(jmToIndex.size() == J);
 		for(unsigned j=0; j<J; j++) {
@@ -254,7 +217,6 @@ public:
 				str.append(" "+unsigStr(jmToIndex[j][m]));
 			}
 		}
-#endif //VANILLA_PSS
 
 		str.append("\nroots: ");
 		for(unsigned o : roots)
@@ -279,11 +241,10 @@ public:
 				str.append(","+unsigStr(prevO));
 		}
 
-#ifdef VANILLA_PSS
 		assert(posets.size() == J);
 		for(const Poset & aPoset : posets)
 			str.append("\n"+aPoset.toString());
-#endif //VANILLA_PSS
+
 		return str;
 	}
 
@@ -501,8 +462,6 @@ public:
 		return lb;
 	}
 
-
-
 	//max for each machine: of min head + min tail + procTs of that machine
 	unsigned lowerBoundNasiri(vector<unsigned> & indeg, vector<unsigned> & Q) const {
 		assert(O > 0);
@@ -539,11 +498,8 @@ public:
 		return lb;
 	}
 
-
-
 	double avrgOrderStr() const {
 
-#ifdef VANILLA_PSS
 		double totalOS = 0.0;
 
 		for(const Poset &p : posets) {
@@ -553,9 +509,7 @@ public:
 		totalOS /= (double)(posets.size());
 
 		return totalOS;
-#endif //VANILLA_PSS
 	}
-
 
 	//max of lowerBoundnasiri and job lower bound
 	unsigned lowerBoundTkz(vector<unsigned> & indeg, vector<unsigned> & Q) const {
@@ -571,7 +525,6 @@ public:
 
 		return lb;
 	}
-
 
 	//max of lowerBoundnasiri and job lower bound
 	unsigned lowerBoundTkz() const {
@@ -599,8 +552,6 @@ public:
 		
 		return lb;
 	}
-
-
 
 	bool verifySchedule(const vector<unsigned> & starts, unsigned expecMakes) const {
 		unsigned foundMakes = 0;
@@ -714,6 +665,7 @@ public:
 			lPenalty += curTardiness;
 		}
 	}
+
 	void printPenaltys(const vector<unsigned> & starts, const unsigned & makes){
 		
 		double sumTardPenaltys = 0;
@@ -757,7 +709,7 @@ public:
 		cout << endl;
 
 
-		#ifdef PRINT_SCHEDULE
+#ifdef PRINT_SCHEDULE
 		
 		for(int j = 0; j < J; ++j){
 			
@@ -774,7 +726,7 @@ public:
 			cout << endl;
 		}
 
-		#endif 
+#endif //PRINT_SCHEDULE
 	}
 
 
@@ -784,28 +736,17 @@ public:
 		assert(o2 < O   &&   o2!=0);
 		assert(o1!=0   &&   o2!=0);
 
-#ifdef VANILLA_PSS
 		if(operToJ[o1] != operToJ[o2])
 			return false;
 		return posets[operToJ[o1]].cg.path(operToM[o1], operToM[o2]);
-#endif //VANILLA_PSS
 	}
 
-	//XXX TODO
-
-#ifdef VANILLA_PSS
 	void parse(const string & filePath) {
 		P.clear();
 		operToJ.clear(); 
 		operToM.clear();
 		jSize.clear();
 		mSize.clear();
-		/*operJobBeg.clear();
-		operJobEnd.clear();
-		operMachBeg.clear();
-		operMachEnd.clear();*/
-		/*jStart.clear();
-		  mStart.clear();*/
 		jobOpers.clear();
 		machOpers.clear();
 		deadlines.clear();
@@ -813,7 +754,6 @@ public:
 		tardPenaltys.clear();
 		
 		string bufferStr;
-		//unsigned bufferT;
 		double bufferT;
 		vector<pair<unsigned, unsigned>> order;
 		unsigned fstM, sndM;
@@ -825,25 +765,10 @@ public:
 		streamFromFile.open(filePath);
 		if( ! streamFromFile.is_open())
 			throw errorText("Could not open instance file: "+filePath, "Instance.hpp", "Inst::parse()");
-		
-		/*while(true) {
-			streamFromFile >> bufferStr;
-			
-			if(streamFromFile.eof())
-				throw errorText("Expected #START# but reached eof", "Instance.hpp", "Inst::parse()");
-			
-			if(bufferStr.compare("#START#") == 0)
-				break;
-		}*/
 
-		/*streamFromFile >> bufferStr;
-		assert(bufferStr.compare("TotalJobs:") == 0);*/
 		streamFromFile >> J;
 		
-		/*streamFromFile >> bufferStr;
-		assert(bufferStr.compare("TotalMachines:") == 0);*/
 		streamFromFile >> M;
-
 
 		P.push_back(0);
 		deadlines.push_back(0);
@@ -856,10 +781,6 @@ public:
 		O = 1;
 		jSize.resize(J,0);
 		mSize.resize(M,0);
-		/*
-		jStart.resize(J+1,1);
-		mStart.resize(M+1,1);
-		*/
 
 		jmToIndex.resize(extents[J][M]);
 		jobOpers.resize(J);
@@ -867,16 +788,11 @@ public:
 
 		unsigned auxM;
 
-		//Reading proc Ts
-		/*streamFromFile >> bufferStr;
-		assert(bufferStr.compare("Costs:") == 0);*/
 		for(unsigned j=0; j<J; j++) {
 			for(unsigned m=0; m<M; m++) {
 				streamFromFile >> auxM;
 				streamFromFile >> bufferT;
 
-				//NOT ready for zero times still - look must set next and prev
-				//REMEBER - > cant use only one dummy - more than one 0 in same job will be considered same
 				assert(bufferT != 0);
 
 				if(bufferT != 0) {
@@ -923,27 +839,13 @@ public:
 		next.resize(O);
 		prev.resize(O);
 
-		/*
-		for(unsigned j=1; j<=J; j++) {
-			assert(jSize[j-1] != 0);
-			jStart[j] = jStart[j-1]+jSize[j-1];
-		}
-		for(unsigned m=1; m<=M; m++) {
-			assert(mSize[m-1] != 0);
-			mStart[m] = mStart[m-1]+mSize[m-1];
-		}
-		*/
-
 		streamFromFile >> bufferT;
 		streamFromFile >> bufferT;
 
 		//Reading precedences
 		for(unsigned j=0; j<J; j++) {
-			/*streamFromFile >> bufferStr;
-			assert(bufferStr.compare("Job:") == 0);*/
 
 			order.clear();
-			//streamFromFile >> auxJSize;
 
 			fromDummy.clear();
 			toDummy.clear();
@@ -958,9 +860,6 @@ public:
 				fstO = jmToIndex[j][fstM];
 				assert(fstO < O);
 				
-				/*streamFromFile >> bufferStr;
-				assert(bufferStr.compare("->") == 0);*/
-				
 				streamFromFile >> sndM;
 				assert(sndM < M);
 				sndO = jmToIndex[j][sndM];
@@ -970,11 +869,6 @@ public:
 					next[fstO].push_back(sndO);
 					prev[sndO].push_back(fstO);
 				}
-
-				//TO GET 0 times - > here annotate which goes to which dummy and set in next 
-				//REMEBER - > can use only one dummy - more than one 0 in same job will be considered same
-				//if(fstO == 0)
-				//	fromDummy.push_back
 
 				order.push_back(pair<unsigned, unsigned>(fstM, sndM));
 				fstM = sndM;
@@ -1002,25 +896,9 @@ public:
 					leafs.push_back(jmToIndex[j][m]);
 			}
 		}
-		/*
-		operJobBeg.resize(O);
-		operJobEnd.resize(O);
-		operMachBeg.resize(O);
-		operMachEnd.resize(O);
-
-		for(unsigned o=1; o<O; o++) {
-			operJobBeg[o] = jStart[operToJ[o]];
-			operJobEnd[o] = jStart[operToJ[o]+1]-1;
-			operMachBeg[o] = mStart[operToM[o]];
-			operMachEnd[o] = mStart[operToM[o]+1]-1;
-		}
-		*/
 
 		streamFromFile.close();
 	}
-#endif //VANILLA_PSS
-
-
 
 	unsigned J;
 	unsigned M;
@@ -1065,8 +943,6 @@ public:
 
 };
 Inst inst;
-
-
 
 class ElementProb {
 
