@@ -2614,6 +2614,7 @@ public:
 		vector<unsigned> mach;
 		vector<unsigned> _mach;
 		vector<unsigned> startTime;
+		vector<unsigned> operPenalties;
 		unsigned makes;
 		unsigned millisecsFound;
 		unsigned lPenalty;
