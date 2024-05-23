@@ -543,7 +543,7 @@ public:
     cout << "    width=" <<J*100 <<", height="<< M * 100<<")" << endl;
 	}
 
-	void calcPenalties(const vector<unsigned> & starts, unsigned &  ePenalty, unsigned & lPenalty){
+	void calcPenalties(const vector<unsigned> & starts, unsigned &  ePenalty, unsigned & lPenalty, vector<unsigned>& operPenalties){
 		ePenalty = 0;
 		lPenalty = 0;
 		int curDueDate;
@@ -551,6 +551,9 @@ public:
 		double curTardiness;
 		double curEarliness;
 		//this->iToR(starts);
+
+		operPenalties.resize(O, 0);
+
 		for(unsigned o=1; o<O; ++o){
 
 			curStart = starts[o];
@@ -563,6 +566,7 @@ public:
 			assert(curTardiness >= 0);
 			ePenalty += curEarliness;
 			lPenalty += curTardiness;
+			operPenalties[o] = curEarliness > 0 ? curEarliness : curTardiness;
 		}
 	}
 
