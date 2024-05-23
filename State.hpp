@@ -1539,6 +1539,34 @@ public:
 		}
 	}
 
+	static void fillCandidatesTestA(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& mach, vector<unsigned>& startTime, vector<unsigned>& operPenalties) {
+
+		assert(mach.size() == inst.O);
+		assert(cands.capacity() == inst.O);
+
+		unsigned sumPenaltiesBefore;
+		unsigned sumPenaltiesAfter;
+
+		for (unsigned currentOp = 1; currentOp < inst.O; ++currentOp) {
+
+			sumPenaltiesBefore = operPenalties[currentOp] + operPenalties[mach[currentOp]];
+			sumPenaltiesAfter = (inst.deadlines[mach[currentOp]] > startTime[currentOp] + inst.P[mach[currentOp]] ? inst.deadlines[mach[currentOp]] - startTime[currentOp] + inst.P[mach[currentOp]] : startTime[currentOp] + inst.P[mach[currentOp]] - inst.deadlines[mach[currentOp]]) + (inst.deadlines[currentOp] > startTime[mach[currentOp]] + inst.P[mach[currentOp]] ? inst.deadlines[currentOp] - startTime[mach[currentOp]] + inst.P[mach[currentOp]] : startTime[mach[currentOp]] + inst.P[mach[currentOp]] - inst.deadlines[currentOp]);
+
+			if (!mach[currentOp]) {
+				continue;
+			}
+			else if ((startTime[currentOp] + inst.P[currentOp]) < inst.deadlines[currentOp] && (startTime[mach[currentOp]] + inst.P[mach[currentOp]]) > inst.deadlines[mach[currentOp]]) {
+				cands.push_back(pair<unsigned, unsigned>(currentOp, mach[currentOp]));
+			}
+			else if ((startTime[currentOp] + inst.P[currentOp]) > inst.deadlines[currentOp] && (startTime[mach[currentOp]] + inst.P[mach[currentOp]]) > inst.deadlines[mach[currentOp]] && sumPenaltiesAfter < sumPenaltiesBefore) {
+				cands.push_back(pair<unsigned, unsigned>(currentOp, mach[currentOp]));
+			}
+			else if ((startTime[currentOp] + inst.P[currentOp]) < inst.deadlines[currentOp] && (startTime[mach[currentOp]] + inst.P[mach[currentOp]]) < inst.deadlines[mach[currentOp]] && sumPenaltiesAfter < sumPenaltiesBefore) {
+				cands.push_back(pair<unsigned, unsigned>(currentOp, mach[currentOp]));
+			}
+		}
+	}
+
 	static void fillCandidatesTest2(vector<pair<unsigned, unsigned>> & cands, vector<unsigned> & mach, vector<unsigned> starts) {
 
 		assert(mach.size() == inst.O);
@@ -1546,10 +1574,12 @@ public:
 
 		for (unsigned currentOp = 1; currentOp < inst.O; ++currentOp) {
 			assert(inst.operToJ[currentOp] != inst.operToJ[mach[currentOp]]);
-
-			if (mach[currentOp] && (starts[currentOp]+inst.P[currentOp]) < inst.deadlines[currentOp] && (starts[mach[currentOp]]+inst.P[mach[currentOp]]) > inst.deadlines[mach[currentOp]]) {
+			if (!mach[currentOp]) {
+				continue;
+			}
+			else if ((starts[currentOp] + inst.P[currentOp]) < inst.deadlines[currentOp] && (starts[mach[currentOp]] + inst.P[mach[currentOp]]) > inst.deadlines[mach[currentOp]]) {
 				cands.push_back(pair<unsigned, unsigned>(currentOp, mach[currentOp]));
-			}	
+			}
 		}
 	}
 
@@ -1929,7 +1959,7 @@ public:
 			}
 		}
 
-		inst.calcPenalties(dists, ePenalty, lPenalty);
+		inst.calcPenalties(dists, ePenalty, lPenalty, operPenalties);
 
 #ifndef NDEBUG
 		unsigned testPenalties = ePenalty + lPenalty;
@@ -1937,7 +1967,7 @@ public:
 
 		shiftOperations(dists, prev, indeg, Q);
 
-		inst.calcPenalties(dists, ePenalty, lPenalty);
+		inst.calcPenalties(dists, ePenalty, lPenalty, operPenalties);
 		penalties = ePenalty + lPenalty;
 		startTime = dists;
 
@@ -2029,185 +2059,12 @@ public:
 				}			
 			}
 		}
-		inst.calcPenalties(dists, ePenalty,lPenalty);
+		inst.calcPenalties(dists, ePenalty,lPenalty, operPenalties);
 		penalties = ePenalty + lPenalty;
 		startTime = dists;
 		
 		return qAccess<inst.O-1;
 	}
-
-    //##############################################################
-	//HALF MAKES functions vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-	//##############################################################
-#ifdef HALF_MAKES
-	//problematic - order in queue is not ok with two swaps
-	//CONST DISTS - put dirty dists
-	unsigned halfMakes(const vector<unsigned> & heads, vector<unsigned> & dists, const vector<unsigned> & invertTable, vector<unsigned> & Q, unsigned o1, unsigned o2) const {
-		assert(isAlloced());
-		assert(dists.size() == inst.O);
-		assert(invertTable.size() == inst.O);
-		assert(Q.size() == inst.O);
-		assert(invertTable[o1] < invertTable[o2]);
-		assert(o1!=0);
-		assert(o2!=0);
-
-		assert(Q[invertTable[o1]] == o1);
-		assert(Q[invertTable[o2]] == o2);
-
-
-		unsigned curOp;
-		unsigned fromJob;
-		unsigned fromMach;
-		unsigned foundMakes = 0;
-
-		vector<unsigned> fixOps = {o2, o1};
-
-		copy(heads.begin(), heads.end(), dists.begin());
-
-		for(unsigned o : fixOps) {
-			if(_job[o] != 0)
-				fromJob = dists[_job[o]] + inst.P[_job[o]];
-			else
-				fromJob = 0;
-			if(_mach[o] != 0)
-				fromMach = dists[_mach[o]] + inst.P[_mach[o]];
-			else
-				fromMach = 0;
-			dists[o] = max(fromJob, fromMach);
-		}
-
-		Q[invertTable[o1]] = o2;
-		Q[invertTable[o2]] = o1;
-
-		for(unsigned index=invertTable[o1]+1; index<inst.O; index++) {
-			curOp = Q[index];
-
-			//cout << "\t\tcurOp: " << curOp << endl;
-
-			if(_job[curOp] != 0)
-				fromJob = dists[_job[curOp]] + inst.P[_job[curOp]];
-			else
-				fromJob = 0;
-
-			if(_mach[curOp] != 0)
-				fromMach = dists[_mach[curOp]] + inst.P[_mach[curOp]];
-			else
-				fromMach = 0;
-
-			dists[curOp] = max(fromJob, fromMach);
-
-			//cout << "\t\t\tdists: " << dists[curOp] << endl;
-		}
-
-		//update makes from leafs
-		for(unsigned l : inst.leafs)
-			foundMakes  = max(foundMakes, dists[l] + inst.P[l]);
-
-		Q[invertTable[o1]] = o1;
-		Q[invertTable[o2]] = o2;
-
-
-#ifndef NDEBUG
-		State dummyState = *this;
-		vector<unsigned> dummyDists(inst.O);
-		unsigned dummyLastOp(inst.O);
-		vector<unsigned> dummyPrev(inst.O);
-		vector<unsigned> dummyIdeg(inst.O);
-		vector<unsigned> dummyQ(inst.O);
-		dummyState.setMeta(dummyDists, dummyLastOp, dummyPrev, dummyIdeg, dummyQ);
-	    for(unsigned u=0; u<inst.O; u++) {
-			assert(dummyDists[u] == dists[u]);
-		}
-		assert(dummyState.makes == foundMakes);
-#endif //NDEBUG
-
-		return foundMakes;
-	}
-	
-
-
-	//normal computing of heads but stores invert table for Q
-	bool halfHeadsComplete(vector<unsigned> & heads, vector<unsigned> & invertTable, vector<unsigned> & indeg, vector<unsigned> & Q) const {
-		assert(isAlloced());
-		assert(heads.size() == inst.O);
-		assert(indeg.size() == inst.O);
-		assert(Q.size() == inst.O);
-
-		unsigned qInsert = 0;
-		unsigned qAccess = 0;
-
-		unsigned curOp;
-		unsigned newOp;
-
-		unsigned newMax;
-
-		fill(heads.begin(), heads.end(), 0);
-		fill(indeg.begin(), indeg.end(), 0);
-
-		for(unsigned o=1; o<inst.O; o++) {
-			if(_job[o] != 0)
-				indeg[o]++;
-			if(_mach[o] != 0)
-				indeg[o]++;
-			if(indeg[o] == 0)
-				Q[qInsert++] = o;
-		}
-
-		assert(qInsert>0);
-
-		while(qAccess < qInsert) {
-			assert(qAccess<Q.size());
-			curOp = Q[qAccess++];
-			invertTable[curOp] = qAccess-1;
-
-			assert(indeg[curOp] == 0);
-			newMax = heads[curOp] + inst.P[curOp];
-
-			//job order
-			newOp = job[curOp];
-			if(newOp != 0) {
-				assert(indeg[newOp]>0);
-				indeg[newOp]--;
-				if(indeg[newOp] == 0) {
-					assert(qInsert<Q.size()-1);
-					Q[qInsert++] = newOp;
-				}
-				heads[newOp] = max(heads[newOp], newMax);
-			}
-			//mach order
-			newOp = mach[curOp];
-			if(newOp != 0) {
-				assert(indeg[newOp]>0);
-				indeg[newOp]--;
-				if(indeg[newOp] == 0) {
-					assert(qInsert<Q.size()-1);
-					Q[qInsert++] = newOp;
-				}
-				heads[newOp] = max(heads[newOp], newMax);
-			}
-		}
-	
-		assert(qAccess<=inst.O-1);
-
-#ifndef NDEBUG
-		State dummyState = *this;
-		vector<unsigned> dummyDists(inst.O);
-		unsigned dummyLastOp(inst.O);
-		vector<unsigned> dummyPrev(inst.O);
-		vector<unsigned> dummyIdeg(inst.O);
-		vector<unsigned> dummyQ(inst.O);
-		dummyState.setMeta(dummyDists, dummyLastOp, dummyPrev, dummyIdeg, dummyQ);
-		for(unsigned u=0; u<inst.O; u++)
-			assert(dummyDists[u] == heads[u]);
-#endif //NDEBUG
-
-		return qAccess<inst.O-1;
-	}
-#endif //HALF_MAKES
-	//##############################################################
-	//HALF MAKES functions ^^^^^^^^^^^^^^^^^^^^^^^
-	//##############################################################
-
 
 	//computes the new makes after swap, expects dists the be the value before the swap and the swap to be performed in DG
 	unsigned swapMakes(const vector<unsigned> & dists, vector<unsigned> & dirtyDists, vector<bool> & dirty, unsigned o1, unsigned o2) const {
@@ -2600,7 +2457,6 @@ public:
 	}
 
 
-
 		bool verify() const {
 		vector<bool> inOpers(inst.O, true);
 		inOpers[0] = false;
@@ -2615,6 +2471,7 @@ public:
 		vector<unsigned> _mach;
 		vector<unsigned> startTime;
 		vector<unsigned> operPenalties;
+		vector<unsigned> tardPenalties;
 		unsigned makes;
 		unsigned millisecsFound;
 		unsigned lPenalty;
