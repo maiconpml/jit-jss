@@ -24,7 +24,7 @@ unsigned currentShownSeconds;
 
 //#define PRINT_SCHEDULE
 //#define PRINT_ONLY_IS
-//#define NEIGHBOURS_NB 
+#define NEIGHBOURS_NB 
 
 #define SHIFT_OPERS
 
