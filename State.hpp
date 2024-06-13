@@ -1526,6 +1526,35 @@ public:
 		}
 	}
 
+	static void findCriticOper(vector<vector<unsigned>>& critic, vector<unsigned>& starts, vector<unsigned> _job, vector<unsigned> _mach) {
+
+		for (unsigned i = 0; i < inst.O; ++i) {
+			critic[i].clear();
+		}
+
+		for (unsigned op = 1; op < inst.O; ++op) {
+
+			if (starts[op] + inst.P[op] > inst.deadlines[op]) {
+	
+				unsigned auxOp = op;
+				vector<unsigned> opCritic;
+				
+				opCritic.push_back(op);
+				
+				while (_mach[auxOp] && starts[_mach[auxOp]] + inst.P[_mach[auxOp]] > starts[_job[auxOp]] + inst.P[_job[auxOp]]) {
+
+					opCritic.push_back(_mach[auxOp]);
+
+					auxOp = _mach[auxOp];
+				}
+
+				if (opCritic.size() > 1) {
+					critic[op] = opCritic;
+				}
+			}
+		}
+	}
+
 	static void fillCandidatesTest1(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& mach) {
 
 		assert(mach.size() == inst.O);
@@ -1535,6 +1564,46 @@ public:
 
 			if (inst.operToJ[currentOp] != inst.operToJ[mach[currentOp]] && mach[currentOp]) {
 				cands.push_back(pair<unsigned, unsigned>(currentOp, mach[currentOp]));
+			}
+		}
+	}
+
+	static void fillCandidatesCritic(vector<pair<unsigned, unsigned>>& cands, vector<vector<unsigned>>& criticOper) {
+
+		assert(cands.capacity() == inst.O);
+
+		for (unsigned currentOp = 1; currentOp < inst.O; ++currentOp) {
+
+			if (criticOper[currentOp].size() > 0) {
+				cands.push_back(pair<unsigned, unsigned>(criticOper[currentOp][0], criticOper[currentOp][1]));
+				if (criticOper[currentOp].size() > 2) cands.push_back(pair<unsigned, unsigned>(criticOper[currentOp][criticOper[currentOp].size() - 1], criticOper[currentOp][criticOper[currentOp].size() - 2]));
+			}
+		}
+	}
+
+	static void fillCandidatesCritic2(vector<pair<unsigned, unsigned>>& cands, vector<vector<unsigned>>& criticOper) {
+
+		unsigned test1 = 0, test2 = 0;
+		for (unsigned currentOp = 1; currentOp < inst.O; ++currentOp) {
+
+			if (criticOper[currentOp].size() > 0) {
+				test1 = 0;
+				test1 = 0;
+				for (pair<unsigned, unsigned> it : cands) {
+					if ((criticOper[currentOp][1] == it.first && criticOper[currentOp][0] == it.second) || (criticOper[currentOp][1] == it.second && criticOper[currentOp][0] == it.first)) {
+						test1 = 1;
+					}
+					if ((criticOper[currentOp][criticOper[currentOp].size() - 1] == it.first && criticOper[currentOp][criticOper[currentOp].size() - 2] == it.second) || (criticOper[currentOp][criticOper[currentOp].size() - 1] == it.second && criticOper[currentOp][criticOper[currentOp].size() - 2] == it.first)) {
+						test2 = 1;
+					}
+				}
+
+				if (test1 == 0) {
+					cands.push_back(pair<unsigned, unsigned>(criticOper[currentOp][1], criticOper[currentOp][0]));
+				}
+				if (test2 == 0 && criticOper[currentOp].size() > 2) {
+					cands.push_back(pair<unsigned, unsigned>(criticOper[currentOp][criticOper[currentOp].size() - 1], criticOper[currentOp][criticOper[currentOp].size() - 2]));
+				}
 			}
 		}
 	}
