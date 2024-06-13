@@ -1584,11 +1584,12 @@ public:
 	static void fillCandidatesCritic2(vector<pair<unsigned, unsigned>>& cands, vector<vector<unsigned>>& criticOper) {
 
 		unsigned test1 = 0, test2 = 0;
+		// 
 		for (unsigned currentOp = 1; currentOp < inst.O; ++currentOp) {
-
+			// verify if there is a critic way
 			if (criticOper[currentOp].size() > 0) {
 				test1 = 0;
-				test1 = 0;
+				test2 = 0;
 				for (pair<unsigned, unsigned> it : cands) {
 					if ((criticOper[currentOp][1] == it.first && criticOper[currentOp][0] == it.second) || (criticOper[currentOp][1] == it.second && criticOper[currentOp][0] == it.first)) {
 						test1 = 1;
