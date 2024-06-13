@@ -431,6 +431,7 @@ namespace Tabu {
 		machBb.reserve(inst.O);
 		vector<unsigned> critic;
 		critic.reserve(inst.O);
+		vector<vector<unsigned>> criticOper(inst.O);
 
 		bool makesCycleDetected;
 		vector<int> oldValues(maxD, -1);
@@ -494,21 +495,24 @@ namespace Tabu {
 				jumped = false;
 				cands.clear();
 
-				/*State::computeCritic(critic, lastOp, prev);
-#ifndef NDEBUG
-				assert( ! critic.empty());
-				assert(critic.size() < inst.O);
-				testMakes = 0;
-				for(unsigned pos=0; pos<critic.size(); pos++)
-					testMakes += inst.P[critic[pos]];
-				assert(testMakes == curState.makes);
-				for(unsigned pos=0; pos<critic.size()-1; pos++)
-					assert(curState.job[critic[pos]] == critic[pos+1]    ||    curState.mach[critic[pos]] == critic[pos+1]);
-#endif
-				State::fillCandidatesN5(cands, jobBb, machBb, critic);*/
+				State::findCriticOper(criticOper, curState.startTime, curState._job, curState._mach);
+
+//				State::computeCritic(critic, lastOp, prev);
+////#ifndef NDEBUG
+////				assert( ! critic.empty());
+////				assert(critic.size() < inst.O);
+////				testMakes = 0;
+////				for(unsigned pos=0; pos<critic.size(); pos++)
+////					testMakes += inst.P[critic[pos]];
+////				assert(testMakes == curState.makes);
+////				for(unsigned pos=0; pos<critic.size()-1; pos++)
+////					assert(curState.job[critic[pos]] == critic[pos+1]    ||    curState.mach[critic[pos]] == critic[pos+1]);
+////#endif
+//				State::fillCandidatesN5(cands, jobBb, machBb, critic);
 				//State::fillCandidatesTest4(cands, curState.mach);
 				//State::fillCandidatesTest2(cands, curState.mach, curState.startTime);
-				State::fillCandidatesTest1(cands, curState.mach);
+				//State::fillCandidatesTest1(cands, curState.mach);
+				State::fillCandidatesCritic2(cands, criticOper);
 
 #ifdef NEIGHBOURS_NB
 				neigh.push_back(cands.size());
