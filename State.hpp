@@ -1583,29 +1583,20 @@ public:
 
 	static void fillCandidatesCritic2(vector<pair<unsigned, unsigned>>& cands, vector<vector<unsigned>>& criticOper) {
 
-		unsigned test1 = 0, test2 = 0;
+		set<pair<unsigned, unsigned>> candsAux;
 		// 
 		for (unsigned currentOp = 1; currentOp < inst.O; ++currentOp) {
 			// verify if there is a critic way
 			if (criticOper[currentOp].size() > 0) {
-				test1 = 0;
-				test2 = 0;
-				for (pair<unsigned, unsigned> it : cands) {
-					if ((criticOper[currentOp][1] == it.first && criticOper[currentOp][0] == it.second) || (criticOper[currentOp][1] == it.second && criticOper[currentOp][0] == it.first)) {
-						test1 = 1;
-					}
-					if ((criticOper[currentOp][criticOper[currentOp].size() - 1] == it.first && criticOper[currentOp][criticOper[currentOp].size() - 2] == it.second) || (criticOper[currentOp][criticOper[currentOp].size() - 1] == it.second && criticOper[currentOp][criticOper[currentOp].size() - 2] == it.first)) {
-						test2 = 1;
-					}
-				}
 
-				if (test1 == 0) {
-					cands.push_back(pair<unsigned, unsigned>(criticOper[currentOp][1], criticOper[currentOp][0]));
-				}
-				if (test2 == 0 && criticOper[currentOp].size() > 2) {
-					cands.push_back(pair<unsigned, unsigned>(criticOper[currentOp][criticOper[currentOp].size() - 1], criticOper[currentOp][criticOper[currentOp].size() - 2]));
-				}
+				candsAux.insert(pair<unsigned, unsigned>(criticOper[currentOp][1], criticOper[currentOp][0]));
+
+				if (criticOper[currentOp].size() > 2)candsAux.insert(pair<unsigned, unsigned>(criticOper[currentOp][criticOper[currentOp].size() - 1], criticOper[currentOp][criticOper[currentOp].size() - 2]));
 			}
+		}
+
+		for (set<pair<unsigned, unsigned>>::iterator it = candsAux.begin(); it != candsAux.end(); ++it) {
+			cands.push_back(*it);
 		}
 	}
 
