@@ -495,7 +495,7 @@ namespace Tabu {
 				jumped = false;
 				cands.clear();
 
-				State::findCriticOper(criticOper, curState.startTime, curState._job, curState._mach);
+				
 
 //				State::computeCritic(critic, lastOp, prev);
 ////#ifndef NDEBUG
@@ -512,8 +512,14 @@ namespace Tabu {
 				//State::fillCandidatesTest4(cands, curState.mach);
 				//State::fillCandidatesTest2(cands, curState.mach, curState.startTime);
 				//State::fillCandidatesTest1(cands, curState.mach);
-				State::fillCandidatesCritic2(cands, criticOper);
-
+				if(noImproveIters > 2){
+					State::fillCandidatesTest1(cands, curState.mach);
+					noImproveIters = 0;
+				} 
+				else{
+					State::findCriticOper(criticOper, curState.startTime, curState._job, curState._mach);
+					State::fillCandidatesCritic2(cands, criticOper);
+				}
 #ifdef NEIGHBOURS_NB
 				neigh.push_back(cands.size());
 #endif // NEIGHBOURS_NB
@@ -554,7 +560,7 @@ namespace Tabu {
 			}
 
 			//STEP new best ??
-			if(curState.penalties < theState.penalties) {
+			if(curState.penalties < theState.penalties){
 
 				if(curState.penalties < printWhenBetter)
 					if(timeLog) {
