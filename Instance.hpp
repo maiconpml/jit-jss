@@ -543,7 +543,7 @@ public:
     cout << "    width=" <<J*100 <<", height="<< M * 100<<")" << endl;
 	}
 
-	void calcPenalties(const vector<unsigned> & starts, unsigned &  ePenalty, unsigned & lPenalty, vector<unsigned>& operPenalties){
+	void calcPenalties(const vector<unsigned> & starts, double&  ePenalty, double& lPenalty, vector<double>& operPenalties){
 		ePenalty = 0;
 		lPenalty = 0;
 		int curDueDate;
@@ -559,8 +559,8 @@ public:
 			curStart = starts[o];
 			curDueDate = deadlines[o];
 			
-			curEarliness = max(curDueDate-(curStart+(int)P[o]), 0);
-			curTardiness = max((curStart+(int)P[o])-curDueDate, 0);
+			curEarliness = max(curDueDate-(curStart+(int)P[o]), 0) * earlPenaltys[o];
+			curTardiness = max((curStart+(int)P[o])-curDueDate, 0) * tardPenaltys[o];
 
 			assert(curEarliness >= 0);
 			assert(curTardiness >= 0);

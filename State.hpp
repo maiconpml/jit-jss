@@ -1862,7 +1862,7 @@ public:
 
 
 	//maxLen = maxD * maxC
-	static bool detectRepeat(vector<int> & oldValues, unsigned & posCurMakes, unsigned & cycleLastPos, unsigned & cycleL, unsigned newMakes, bool isNewBest, unsigned maxD, unsigned maxLen) {
+	static bool detectRepeat(vector<int> & oldValues, unsigned & posCurMakes, unsigned & cycleLastPos, unsigned & cycleL, double newMakes, bool isNewBest, unsigned maxD, unsigned maxLen) {
 		assert(oldValues.size() == maxD);
 		assert(maxD != 0);
 
@@ -2531,11 +2531,11 @@ public:
 		vector<unsigned> mach;
 		vector<unsigned> _mach;
 		vector<unsigned> startTime;
-		vector<unsigned> operPenalties;
-		vector<unsigned> tardPenalties;
+		vector<double> operPenalties;
+		vector<double> tardPenalties;
 		unsigned makes;
 		unsigned millisecsFound;
-		unsigned lPenalty;
-		unsigned ePenalty;
-		unsigned penalties;
+		double lPenalty;
+		double ePenalty;
+		double penalties;
 	};

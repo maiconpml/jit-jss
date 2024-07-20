@@ -238,7 +238,7 @@ public:
 
 namespace Tabu {
 
-	void nsp(State & theState, unsigned & lastOp, TabuList & tabuList, vector<pair<unsigned,unsigned>> & cands, unsigned aspiration, vector<unsigned> & dists, vector<unsigned> & prev, vector<unsigned> & indeg, vector<unsigned> & Q, vector<unsigned> & heads, vector<unsigned> & tails, bool lbOrder) {
+	void nsp(State & theState, unsigned & lastOp, TabuList & tabuList, vector<pair<unsigned,unsigned>> & cands, double aspiration, vector<unsigned> & dists, vector<unsigned> & prev, vector<unsigned> & indeg, vector<unsigned> & Q, vector<unsigned> & heads, vector<unsigned> & tails, bool lbOrder) {
 #ifndef NDEBUG
 		assert( ! cands.empty());
 		assert(dists.size() == inst.O);
@@ -256,7 +256,7 @@ namespace Tabu {
 		unsigned pPos;
 
 		//Unforbidden or aspiration here
-		unsigned chosenMakes = UINT_MAX;
+		double chosenMakes = UINT_MAX;
 	    unsigned chosenO1 = 0;
 		unsigned chosenO2 = 0;
 		unsigned chosenSwapPos;
@@ -401,7 +401,7 @@ namespace Tabu {
 
 	//@return: is optimal?
 	//printWhenBetter use 0 to not print. will print preString makes seconds (according to tpSTart) d 
-	bool evolveTabu(State & theState, unsigned tenure, unsigned initialjumpLimit, unsigned decreaseDivisor, unsigned bjSize, const high_resolution_clock::time_point & tpStart, vector<unsigned> & dists, vector<unsigned> & prev, vector<unsigned> & indeg, vector<unsigned> & Q, const unsigned maxD, const unsigned maxC, const unsigned lowerBound, unsigned maxMillisecs, unsigned printWhenBetter, const string & preString, vector<unsigned> & heads, vector<unsigned> & tails, bool timeLog, bool lbOrder)  {
+	bool evolveTabu(State & theState, unsigned tenure, unsigned initialjumpLimit, unsigned decreaseDivisor, unsigned bjSize, const high_resolution_clock::time_point & tpStart, vector<unsigned> & dists, vector<unsigned> & prev, vector<unsigned> & indeg, vector<unsigned> & Q, const unsigned maxD, const unsigned maxC, const double lowerBound, unsigned maxMillisecs, unsigned printWhenBetter, const string & preString, vector<unsigned> & heads, vector<unsigned> & tails, bool timeLog, bool lbOrder)  {
 #ifndef NDEBUG
 		bool cycle;
 #endif
