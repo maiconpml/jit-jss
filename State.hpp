@@ -1944,7 +1944,7 @@ public:
 	}
 
 	//set makes with shift to minimize earliness penalties
-	bool setMetaWithShift(vector<unsigned>& dists, unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q) {
+	bool setMeta(vector<unsigned>& dists, unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q) {
 		assert(isAlloced());
 		assert(dists.size() == inst.O);
 		assert(prev.size() == inst.O);
@@ -2020,112 +2020,116 @@ public:
 			}
 		}
 
-		inst.calcPenalties(dists, ePenalty, lPenalty, operPenalties);
-
+#ifdef SHIFT_OPERS
 #ifndef NDEBUG
+		inst.calcPenalties(dists, ePenalty, lPenalty, operPenalties);
+		
 		unsigned testPenalties = ePenalty + lPenalty;
-#endif
+#endif //NDEBUG
 
 		shiftOperations(dists, prev, indeg, Q);
+#endif //SHIFT_OPERS
 
 		inst.calcPenalties(dists, ePenalty, lPenalty, operPenalties);
 		penalties = ePenalty + lPenalty;
 		startTime = dists;
 
+#ifdef SHIFT_OPERS
 		assert(penalties <= testPenalties);
+#endif //SHIFT_OPERS
 
 		return qAccess < inst.O - 1;
 	}
 	
 
-	//does not set critic but do set makes
-	//@return: cycle?
-	bool setMeta(vector<unsigned> & dists, unsigned & lastOp, vector<unsigned> & prev, vector<unsigned> & indeg, vector<unsigned> & Q)  {
-
-#ifdef SHIFT_OPERS
-		return setMetaWithShift(dists, lastOp, prev, indeg, Q);
-#endif //SHIFT_OPERS
-
-		assert(isAlloced());
-		assert(dists.size() == inst.O);
-		assert(prev.size() == inst.O);
-		assert(indeg.size() == inst.O);
-		assert(Q.size() == inst.O);
-
-		unsigned qInsert = 0;
-		unsigned qAccess = 0;
-
-		unsigned curOp;
-		unsigned newOp;
-
-		unsigned newMax;
-
-		makes = 0;
-
-		fill(dists.begin(), dists.end(), 0);
-		fill(indeg.begin(), indeg.end(), 0);
-
-		for(unsigned o=1; o<inst.O; o++) {
-			if(_job[o] != 0)
-				indeg[o]++;
-			if(_mach[o] != 0)
-				indeg[o]++;
-			if(indeg[o] == 0) {
-				prev[o] = 0;
-				Q[qInsert++] = o;
-			}
-		}
-
-		//assert(qInsert>0);
-
-		while(qAccess < qInsert) {
-			assert(qAccess<Q.size());
-			curOp = Q[qAccess++];
-
-			assert(indeg[curOp] == 0);
-
-			newMax = dists[curOp] + inst.P[curOp];
-			if(makes < newMax) {
-				makes = newMax;
-				lastOp = curOp;
-			}
-
-			//from JOB
-			newOp = job[curOp];
-			if(newOp != 0) {
-				assert(indeg[newOp] > 0);
-				indeg[newOp]--;
-				if(indeg[newOp] == 0) {
-					assert(qInsert<Q.size()-1);
-					Q[qInsert++] = newOp;
-				}
-				if(dists[newOp] < newMax) {
-					dists[newOp] = newMax;	
-					prev[newOp] = curOp;
-				}			
-			}
-
-			//from MACH
-			newOp = mach[curOp];
-			if(newOp != 0) {
-				assert(indeg[newOp] > 0);
-				indeg[newOp]--;
-				if(indeg[newOp] == 0) {
-					assert(qInsert<Q.size()-1);
-					Q[qInsert++] = newOp;
-				}
-				if(dists[newOp] < newMax) {
-					dists[newOp] = newMax; 
-					prev[newOp] = curOp;
-				}			
-			}
-		}
-		inst.calcPenalties(dists, ePenalty,lPenalty, operPenalties);
-		penalties = ePenalty + lPenalty;
-		startTime = dists;
-		
-		return qAccess<inst.O-1;
-	}
+//	//does not set critic but do set makes
+//	//@return: cycle?
+//	bool setMeta(vector<unsigned> & dists, unsigned & lastOp, vector<unsigned> & prev, vector<unsigned> & indeg, vector<unsigned> & Q)  {
+//
+//#ifdef SHIFT_OPERS
+//		return setMetaWithShift(dists, lastOp, prev, indeg, Q);
+//#endif //SHIFT_OPERS
+//
+//		assert(isAlloced());
+//		assert(dists.size() == inst.O);
+//		assert(prev.size() == inst.O);
+//		assert(indeg.size() == inst.O);
+//		assert(Q.size() == inst.O);
+//
+//		unsigned qInsert = 0;
+//		unsigned qAccess = 0;
+//
+//		unsigned curOp;
+//		unsigned newOp;
+//
+//		unsigned newMax;
+//
+//		makes = 0;
+//
+//		fill(dists.begin(), dists.end(), 0);
+//		fill(indeg.begin(), indeg.end(), 0);
+//
+//		for(unsigned o=1; o<inst.O; o++) {
+//			if(_job[o] != 0)
+//				indeg[o]++;
+//			if(_mach[o] != 0)
+//				indeg[o]++;
+//			if(indeg[o] == 0) {
+//				prev[o] = 0;
+//				Q[qInsert++] = o;
+//			}
+//		}
+//
+//		//assert(qInsert>0);
+//
+//		while(qAccess < qInsert) {
+//			assert(qAccess<Q.size());
+//			curOp = Q[qAccess++];
+//
+//			assert(indeg[curOp] == 0);
+//
+//			newMax = dists[curOp] + inst.P[curOp];
+//			if(makes < newMax) {
+//				makes = newMax;
+//				lastOp = curOp;
+//			}
+//
+//			//from JOB
+//			newOp = job[curOp];
+//			if(newOp != 0) {
+//				assert(indeg[newOp] > 0);
+//				indeg[newOp]--;
+//				if(indeg[newOp] == 0) {
+//					assert(qInsert<Q.size()-1);
+//					Q[qInsert++] = newOp;
+//				}
+//				if(dists[newOp] < newMax) {
+//					dists[newOp] = newMax;	
+//					prev[newOp] = curOp;
+//				}			
+//			}
+//
+//			//from MACH
+//			newOp = mach[curOp];
+//			if(newOp != 0) {
+//				assert(indeg[newOp] > 0);
+//				indeg[newOp]--;
+//				if(indeg[newOp] == 0) {
+//					assert(qInsert<Q.size()-1);
+//					Q[qInsert++] = newOp;
+//				}
+//				if(dists[newOp] < newMax) {
+//					dists[newOp] = newMax; 
+//					prev[newOp] = curOp;
+//				}			
+//			}
+//		}
+//		inst.calcPenalties(dists, ePenalty,lPenalty, operPenalties);
+//		penalties = ePenalty + lPenalty;
+//		startTime = dists;
+//		
+//		return qAccess<inst.O-1;
+//	}
 
 	//computes the new makes after swap, expects dists the be the value before the swap and the swap to be performed in DG
 	unsigned swapMakes(const vector<unsigned> & dists, vector<unsigned> & dirtyDists, vector<bool> & dirty, unsigned o1, unsigned o2) const {
@@ -2320,8 +2324,7 @@ public:
 		cout << makes << " ";
 #endif //PRINT_ONLY_RESULT
 
-		inst.printPenaltys(schedule,makes);
-		
+		inst.printPenaltys(schedule,makes);		
 	}
 
 	
