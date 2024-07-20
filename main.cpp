@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
 			//("jumpLimitDecrease", po::value<unsigned>()->default_value(400), "decrease in jumLimit each time jumps without improve")
 			("decreaseDivisor", po::value<unsigned>()->default_value(7), "decrease in jumLimit each time jumps without improve")
 			("increaseIters", po::value<unsigned>()->default_value(0), "Increase the max number of iterations after each perturb")
-			("bjSize", po::value<unsigned>()->default_value(5), "back jump list size")
+			("bjSize", po::value<unsigned>()->default_value(20), "back jump list size")
 			("maxD", po::value<unsigned>()->default_value(100), "cycle size to stop search and force backjump")
 			("maxC", po::value<unsigned>()->default_value(2), "number of repeats of cycle to force backjump")
 			("acceptAlpha", po::value<double>()->default_value(0.1466), "For Metropolis acceptance criterion")
