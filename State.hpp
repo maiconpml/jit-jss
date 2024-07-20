@@ -2316,7 +2316,9 @@ public:
 	void printPenaltys(){
 
 		vector<unsigned> schedule = genSchedule();
+#ifndef PRINT_ONLY_RESULT
 		cout << makes << " ";
+#endif //PRINT_ONLY_RESULT
 
 		inst.printPenaltys(schedule,makes);
 		

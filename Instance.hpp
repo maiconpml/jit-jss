@@ -622,7 +622,13 @@ public:
 		return;
 #endif //PRINT_SCHEDULE
 
+#ifndef PRINT_ONLY_RESULT
 		cout << sumPenaltys << " " << sumEarlPenaltys << " " << sumTardPenaltys << " ";
+#endif //PRINT_ONLY_RESULT
+#ifdef PRINT_ONLY_RESULT
+		cout << sumPenaltys;
+#endif // PRINT_ONLY_RESULT
+
 
 #ifdef NEIGHBOURS_NB
 		double mean = 0;

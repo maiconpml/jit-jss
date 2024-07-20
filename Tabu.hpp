@@ -631,7 +631,9 @@ namespace Tabu {
 		if( ! theState.verifySchedule())
 			throw errorText(theState.toString() + "\n\t\tBad schedule !!!!!","","");
 
+#ifndef PRINT_ONLY_RESULT
 		cout << instPath << " " << lowerBound << " ";
+#endif //PRINT_ONLY_RESULT
 		theState.printPenaltys();
 	}
 }
