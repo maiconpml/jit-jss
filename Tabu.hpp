@@ -446,6 +446,7 @@ namespace Tabu {
 
 		unsigned tabuIter =0;
 		unsigned noImproveIters = 0;
+		unsigned trySwapNeigh = 0;
 		unsigned curJumpLimit = initialjumpLimit;
 		bool jumped = false;
 		bool newBestFound = true;
@@ -512,9 +513,8 @@ namespace Tabu {
 				//State::fillCandidatesTest4(cands, curState.mach);
 				//State::fillCandidatesTest2(cands, curState.mach, curState.startTime);
 				//State::fillCandidatesTest1(cands, curState.mach);
-				if(noImproveIters > 2){
+				if(trySwapNeigh == 1 || !curState.lPenalty){
 					State::fillCandidatesTest1(cands, curState.mach);
-					noImproveIters = 0;
 				} 
 				else{
 					State::findCriticOper(criticOper, curState.startTime, curState._job, curState._mach);
@@ -567,6 +567,7 @@ namespace Tabu {
 						resultList.push_back(preString + unsigStr(curState.penalties) + " " + doubleStr((duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count())/1000.0) + " d");
 					}
 
+				trySwapNeigh = 0;
 				noImproveIters = 0;
 				theState = curState;
 				curJumpLimit = initialjumpLimit;
@@ -578,6 +579,10 @@ namespace Tabu {
 
 				theState.millisecsFound=duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count();
 				curState.millisecsFound=duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count();
+			}
+			else {
+				if (trySwapNeigh) trySwapNeigh = 0;
+				else trySwapNeigh = 1;
 			}
 		}//end while
 
