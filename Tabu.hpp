@@ -513,7 +513,7 @@ namespace Tabu {
 				//State::fillCandidatesTest4(cands, curState.mach);
 				//State::fillCandidatesTest2(cands, curState.mach, curState.startTime);
 				//State::fillCandidatesTest1(cands, curState.mach);
-				if(trySwapNeigh == 2 || !curState.lPenalty){
+				if(trySwapNeigh == 1 || !curState.lPenalty){
 					State::fillCandidatesTest1(cands, curState.mach);
 				} 
 				else{
