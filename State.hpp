@@ -1862,14 +1862,14 @@ public:
 
 
 	//maxLen = maxD * maxC
-	static bool detectRepeat(vector<int> & oldValues, unsigned & posCurMakes, unsigned & cycleLastPos, unsigned & cycleL, double newMakes, bool isNewBest, unsigned maxD, unsigned maxLen) {
+	static bool detectRepeat(vector<int> & oldValues, unsigned & posCurPenalties, unsigned & cycleLastPos, unsigned & cycleL, double newPenalties, bool isNewBest, unsigned maxD, unsigned maxLen) {
 		assert(oldValues.size() == maxD);
 		assert(maxD != 0);
 
 
 		// new best solution: reset cycle detector
 		if (isNewBest) { 
-			posCurMakes = 0;
+			posCurPenalties = 0;
 			cycleLastPos = 0;
 			cycleL = 0;
 			for (unsigned u=0; u<maxD; u++)
@@ -1877,14 +1877,14 @@ public:
 		}
 		// store current makespan in ring buffer
 
-		++posCurMakes;
-		posCurMakes = posCurMakes % maxD; 
-		oldValues[posCurMakes]=newMakes; //posCurMakes is latest makes pos
-		//fprintf(stderr, "cur makes: %d.\n", newMakes);
+		++posCurPenalties;
+		posCurPenalties = posCurPenalties % maxD; 
+		oldValues[posCurPenalties]=newPenalties; //posCurPenalties is latest makes pos
+		//fprintf(stderr, "cur makes: %d.\n", newPenalties);
 		// if current makespan occurred earlier
 		if (cycleLastPos) {
 			// if current make is also the same
-			if (!(oldValues[(posCurMakes+cycleLastPos)%maxD]-newMakes)) {//maxD is lenght of ring buffer
+			if (!(oldValues[(posCurPenalties+cycleLastPos)%maxD]-newPenalties)) {//maxD is lenght of ring buffer
 				// if this has been the case for maxc periods: we have cycle
 				if (++cycleL >= maxLen) {//cycleL is number of times it was already found to be equal
 					//printf(    "oldValues d [%3d] (%8ld)   %6.2f'\n",cycleLastPos,iter,showtime(timep));
@@ -1898,7 +1898,7 @@ public:
 		// not detecting a cycle, or current cycle is not a cycle: reset, find last occurrence of current makespan
 		cycleL=cycleLastPos=0; 
 		for (unsigned u=1; u<maxD; u++) {
-			if (!(oldValues[(posCurMakes+u)%maxD]-newMakes)) 
+			if (!(oldValues[(posCurPenalties+u)%maxD]-newPenalties)) 
 				cycleLastPos=u; //cycleLastPos is position of the of last makespan - if cycleLastPos is 0 then it wasnt in list
 		}
 		return false; 

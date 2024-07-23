@@ -256,7 +256,7 @@ namespace Tabu {
 		unsigned pPos;
 
 		//Unforbidden or aspiration here
-		double chosenMakes = UINT_MAX;
+		double chosenPenalties = UINT_MAX;
 	    unsigned chosenO1 = 0;
 		unsigned chosenO2 = 0;
 		unsigned chosenSwapPos;
@@ -292,7 +292,7 @@ namespace Tabu {
 		//for(unsigned pPos=0; pPos<cands.size(); pPos++) {
 		for(unsigned curVisitOrderI=0; curVisitOrderI<candVisitOrder.size(); curVisitOrderI++) {
 
-			if(lbOrder    &&    candVisitOrder[curVisitOrderI].first >= chosenMakes)
+			if(lbOrder    &&    candVisitOrder[curVisitOrderI].first >= chosenPenalties)
 				break;
 
 			pPos = candVisitOrder[curVisitOrderI].second;
@@ -313,8 +313,8 @@ namespace Tabu {
 
 
 
-				if(theState.penalties < chosenMakes && !cycle) {
-					chosenMakes = theState.penalties;
+				if(theState.penalties < chosenPenalties && !cycle) {
+					chosenPenalties = theState.penalties;
 					chosenO1 = o1;
 					chosenO2 = o2;
 					chosenSwapPos = pPos;
@@ -330,7 +330,7 @@ namespace Tabu {
 		//for(unsigned pPos=0; pPos<cands.size(); pPos++) {
 		for(unsigned curVisitOrderI=0; curVisitOrderI<candVisitOrder.size(); curVisitOrderI++) {
 
-			if(lbOrder  &&  candVisitOrder[curVisitOrderI].first >= chosenMakes)
+			if(lbOrder  &&  candVisitOrder[curVisitOrderI].first >= chosenPenalties)
 				break;
 
 			pPos = candVisitOrder[curVisitOrderI].second;
@@ -350,15 +350,15 @@ namespace Tabu {
 				//assert( ! cycle);
 
 				//aspiration
-				if(theState.penalties < aspiration   &&   theState.penalties < chosenMakes && !cycle) {
-					chosenMakes = theState.penalties;
+				if(theState.penalties < aspiration   &&   theState.penalties < chosenPenalties && !cycle) {
+					chosenPenalties = theState.penalties;
 					chosenO1 = o1;
 					chosenO2 = o2;
 					chosenSwapPos = pPos;
 				}
 
 				//crap moves
-				if(chosenMakes==UINT_MAX   &&   fnpStateAge < tabuList.age(o1, o2) && !cycle) {
+				if(chosenPenalties==UINT_MAX   &&   fnpStateAge < tabuList.age(o1, o2) && !cycle) {
 				    oldestO1 = o1;
 					oldestO2 = o2;
 					oldestFnpSwapPos = pPos;
@@ -372,7 +372,7 @@ namespace Tabu {
 		}
 
 		//perform move - remove used cand - update tabu list
-		if(chosenMakes != UINT_MAX) {
+		if(chosenPenalties != UINT_MAX) {
 			//good move found
 			assert(chosenO1 != 0   &&   chosenO1 < inst.O);
 			assert(chosenO2 != 0   &&   chosenO2 < inst.O);
@@ -433,9 +433,9 @@ namespace Tabu {
 		critic.reserve(inst.O);
 		vector<vector<unsigned>> criticOper(inst.O);
 
-		bool makesCycleDetected;
+		bool penaltiesCycleDetected;
 		vector<int> oldValues(maxD, -1);
-		unsigned posCurMakes = 0;
+		unsigned posCurPenalties = 0;
 		unsigned cycleLastPos = 0;
 		unsigned cycleL = 0;
 		const unsigned maxLen = maxD * maxC;
@@ -466,10 +466,10 @@ namespace Tabu {
 			noImproveIters++;
 
 			//STEP Checking for cycles
-			makesCycleDetected = State::detectRepeat(oldValues, posCurMakes, cycleLastPos, cycleL, curState.penalties, newBestFound, maxD, maxLen); //PENAL alt makes
+			penaltiesCycleDetected = State::detectRepeat(oldValues, posCurPenalties, cycleLastPos, cycleL, curState.penalties, newBestFound, maxD, maxLen); //PENAL alt makes
 
 			// STEP get trio from jump list or compute cands
-			if((curJumpLimit < noImproveIters)   ||    makesCycleDetected   ||   emptyNeighbourhood) {//JUMPING
+			if((curJumpLimit < noImproveIters)   ||    penaltiesCycleDetected   ||   emptyNeighbourhood) {//JUMPING
 				assert( ! newBestFound);
 
 				jumped = true;
@@ -513,7 +513,7 @@ namespace Tabu {
 				//State::fillCandidatesTest4(cands, curState.mach);
 				//State::fillCandidatesTest2(cands, curState.mach, curState.startTime);
 				//State::fillCandidatesTest1(cands, curState.mach);
-				if(trySwapNeigh == 1 || !curState.lPenalty){
+				if(trySwapNeigh == 2 || !curState.lPenalty){
 					State::fillCandidatesTest1(cands, curState.mach);
 				} 
 				else{
@@ -604,7 +604,6 @@ namespace Tabu {
 		vector<unsigned> tails(inst.O);
 		vector<unsigned> invertedQ(inst.O);
 		vector<bool> reach(inst.O);
-
 
 		State theState;
 		theState.alloc();

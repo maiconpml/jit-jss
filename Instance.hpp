@@ -559,8 +559,8 @@ public:
 			curStart = starts[o];
 			curDueDate = deadlines[o];
 			
-			curEarliness = max(curDueDate-(curStart+(int)P[o]), 0) * earlPenaltys[o];
-			curTardiness = max((curStart+(int)P[o])-curDueDate, 0) * tardPenaltys[o];
+			curEarliness = max(curDueDate-(curStart+(int)P[o]), 0) * earlPenalties[o];
+			curTardiness = max((curStart+(int)P[o])-curDueDate, 0) * tardPenalties[o];
 
 			assert(curEarliness >= 0);
 			assert(curTardiness >= 0);
@@ -596,8 +596,8 @@ public:
 			assert(curEarliness >= 0);
 			assert(curTardiness >= 0);
 
-			sumEarlPenaltys += curEarliness*earlPenaltys[o];
-			sumTardPenaltys += curTardiness*tardPenaltys[o];
+			sumEarlPenaltys += curEarliness*earlPenalties[o];
+			sumTardPenaltys += curTardiness*tardPenalties[o];
 		}
 
 		sumPenaltys = sumEarlPenaltys + sumTardPenaltys;
@@ -665,8 +665,8 @@ public:
 		jobOpers.clear();
 		machOpers.clear();
 		deadlines.clear();
-		earlPenaltys.clear();
-		tardPenaltys.clear();
+		earlPenalties.clear();
+		tardPenalties.clear();
 		
 		string bufferStr;
 		double bufferT;
@@ -687,8 +687,8 @@ public:
 
 		P.push_back(0);
 		deadlines.push_back(0);
-		earlPenaltys.push_back(0);
-		tardPenaltys.push_back(0); 
+		earlPenalties.push_back(0);
+		tardPenalties.push_back(0); 
 		operToJ.push_back(UINT_MAX);
 		operToM.push_back(UINT_MAX);
 
@@ -840,8 +840,8 @@ public:
 
 	//JIT-JSS informations
 	vector<unsigned> deadlines; //<O> deadlines[o] is due-date of an operation o
-	vector<double> earlPenaltys; //<O> earlPenaltys[o] is earliness penalty of operation o
-	vector<double> tardPenaltys;//<O>	tardPenaltys[o] is tardiness penalty of operation o
+	vector<double> earlPenalties; //<O> earlPenalties[o] is earliness penalty of operation o
+	vector<double> tardPenalties;//<O>	tardPenalties[o] is tardiness penalty of operation o
 
 
 	//precedences
