@@ -1905,7 +1905,7 @@ public:
 	}
 
 	//shift early operations making its completion time closer of its due date
-	void shiftOperations(vector<unsigned>& starts, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q) {
+	void shiftOperations(vector<unsigned>& starts, vector<unsigned>& Q) {
 
 		vector<unsigned> newStarts(inst.O, 0);
 		vector<unsigned> startJobSuccessor(inst.J, UINT_MAX);
@@ -2027,7 +2027,7 @@ public:
 		unsigned testPenalties = ePenalty + lPenalty;
 #endif //NDEBUG
 
-		shiftOperations(dists, prev, indeg, Q);
+		shiftOperations(dists, Q);
 #endif //SHIFT_OPERS
 
 		inst.calcPenalties(dists, ePenalty, lPenalty, operPenalties);
