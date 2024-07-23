@@ -709,35 +709,31 @@ public:
 				streamFromFile >> bufferT;
 
 				assert(bufferT != 0);
+				
+				P.push_back(bufferT);
+				assert(P[O] == bufferT);
+				jmToIndex[j][auxM] = O;
+				jobOpers[j].push_back(O);
+				machOpers[auxM].push_back(O);
 
-				if(bufferT != 0) {
-					P.push_back(bufferT);
-					assert(P[O] == bufferT);
-					jmToIndex[j][auxM] = O;
-					jobOpers[j].push_back(O);
-					machOpers[auxM].push_back(O);
+				streamFromFile >> bufferT;
+				deadlines.push_back(bufferT);
+				assert(deadlines[O] == bufferT);
+				streamFromFile >> bufferT;
+				earlPenalties.push_back(bufferT);
+				assert(earlPenalties[O] == bufferT);
+				streamFromFile >> bufferT;
+				tardPenalties.push_back(bufferT);
+				assert(tardPenalties[O] == bufferT);
 
-					streamFromFile >> bufferT;
-					deadlines.push_back(bufferT);
-					assert(deadlines[O] == bufferT);
-					streamFromFile >> bufferT;
-					earlPenaltys.push_back(bufferT);
-					assert(earlPenaltys[O] == bufferT);
-					streamFromFile >> bufferT;
-					tardPenaltys.push_back(bufferT);
-					assert(tardPenaltys[O] == bufferT);
-
-					O++;
-					operToJ.push_back(j);
-					operToM.push_back(auxM);
-					jSize[j]++;
-					mSize[auxM]++;
-				} else {
-					jmToIndex[j][auxM] = 0;
-				}
-
+				O++;
+				operToJ.push_back(j);
+				operToM.push_back(auxM);
+				jSize[j]++;
+				mSize[auxM]++;
 			}
 		}
+
 		assert(O <= J*M+1);
 		assert(operToJ.size() == O);
 		assert(operToM.size() == O);
