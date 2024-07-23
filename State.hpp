@@ -2024,7 +2024,7 @@ public:
 #ifndef NDEBUG
 		inst.calcPenalties(dists, ePenalty, lPenalty, operPenalties);
 		
-		unsigned testPenalties = ePenalty + lPenalty;
+		double testPenalties = ePenalty + lPenalty;
 #endif //NDEBUG
 
 		shiftOperations(dists, Q);
