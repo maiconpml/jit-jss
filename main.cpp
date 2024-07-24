@@ -11,7 +11,6 @@ using namespace boost;
 #include "Settings.hpp"
 #include "State.hpp"
 #include "Tabu.hpp"
-#include "Iterated.hpp"
 
 int main(int argc, char *argv[]) {
 	
@@ -30,7 +29,7 @@ int main(int argc, char *argv[]) {
 			//("jumpLimitDecrease", po::value<unsigned>()->default_value(400), "decrease in jumLimit each time jumps without improve")
 			("decreaseDivisor", po::value<unsigned>()->default_value(7), "decrease in jumLimit each time jumps without improve")
 			("increaseIters", po::value<unsigned>()->default_value(0), "Increase the max number of iterations after each perturb")
-			("bjSize", po::value<unsigned>()->default_value(5), "back jump list size")
+			("bjSize", po::value<unsigned>()->default_value(20), "back jump list size")
 			("maxD", po::value<unsigned>()->default_value(100), "cycle size to stop search and force backjump")
 			("maxC", po::value<unsigned>()->default_value(2), "number of repeats of cycle to force backjump")
 			("acceptAlpha", po::value<double>()->default_value(0.1466), "For Metropolis acceptance criterion")
@@ -80,7 +79,7 @@ int main(int argc, char *argv[]) {
 		const bool timeLog = vm["timeLog"].as<bool>();
 		const bool lowerBoundOrder = vm["lowerBoundOrder"].as<bool>();
 		const string perturbTypeStr = vm["perturbType"].as<string>();
-		unsigned perturbType;
+		/*unsigned perturbType;
 		if (perturbTypeStr.compare("insa") == 0)
 			perturbType = INSA_PERTURB;
 		else if (perturbTypeStr.compare("bubble") == 0)
@@ -90,7 +89,7 @@ int main(int argc, char *argv[]) {
 		else if (perturbTypeStr.compare("gt") == 0)
 			perturbType = GT;
 		else
-			throw errorText("Invalid opetion for perturbation","main","main");
+			throw errorText("Invalid opetion for perturbation","main","main");*/
 		const double scaleTime = vm["scaleTime"].as<double>();
 		const string scheduleFile = vm["scheduleFile"].as<string>();
 		const double bubbleP = vm["bubbleP"].as<double>();
@@ -119,87 +118,11 @@ int main(int argc, char *argv[]) {
 #endif
 
 		//(5) execute
-		//const string & instPath, string & name, double maxSecs, unsigned seed, unsigned tenure, unsigned initialjumpLimit, unsigned decreaseDivisor, unsigned bjSize, unsigned maxD, unsigned maxC, double acceptAlpha, unsigned perturbSize, bool timeLog, bool lowerBoundOrder, unsigned perturbType, const string & scheduleFile, double bubbleP
-		if(searchTypeStr.compare("iteratedGreedy")==0) {
-			IG::iteratedGreedy(instPath,  name, maxSecs, seed, tenure, initialjumpLimit, decreaseDivisor, increaseIters, bjSize, maxD,maxC, acceptAlpha, sizePBubble, sizePInsa, timeLog, lowerBoundOrder, perturbType, scheduleFile, bubbleP, mixProb);
-		} else if(searchTypeStr.compare("tabuSearch")==0) {
-		    Tabu::nosmuTabu(instPath, name, tenure, initialjumpLimit, decreaseDivisor, bjSize, maxD, maxC, GT, 1000*maxSecs, timeLog);
-		} else {
-			throw errorText("Invalid option for searchType","main","main");
-		}
+		Tabu::nosmuTabu(instPath, name, tenure, initialjumpLimit, decreaseDivisor, bjSize, maxD, maxC, GT, 1000*maxSecs, timeLog);
+		
 	}catch(const string & e) {
 		cout << e << endl;
 	}
 
 	return 0;
 }
-
-
-
-/*
-int main(int argc, char *argv[]) {
-	try{
-		// (1) process commandline options
-		po::options_description desc("Options");
-		desc.add_options()
-			("help", "show help")
-			("ins", "instance")
-			("startType", po::value<string>()->default_value("insa"), "type of start: insa or rand")
-			("tenure", po::value<unsigned>()->default_value(8), "tabu tenure")
-			("iters", po::value<unsigned>()->default_value(2500), "initial max iterations withour improvement before backjump")
-			("iterDecrease", po::value<unsigned>()->default_value(400), "decrease in jumLimit each time jumps without improve")
-			("bjSize", po::value<unsigned>()->default_value(5), "back jump list size")
-			("maxD", po::value<unsigned>()->default_value(100), "cycle size to stop search and force backjump")
-			("maxC", po::value<unsigned>()->default_value(2), "number of repeats of cycle to force backjump")
-			("maxMillisecs", po::value<unsigned>()->default_value(UINT_MAX), "max millisecs to finish")
-			;
-
-		po::positional_options_description pod;
-		pod.add("ins", 1); //instance is positional as well
-		po::variables_map vm;
-		po::store(po::command_line_parser(argc, argv).options(desc).positional(pod).run(), vm);
-		po::notify(vm);
-
-		// (2) check options
-		if (vm.count("help") || !vm.count("ins")) {
-			cout << desc << endl;
-			return 0;
-		}
-
-		// (3) initialize params
-		const string instPath = vm["ins"].as<string>();
-		const string startTypeStr = vm["startType"].as<string>();
-		unsigned startType;
-		const unsigned tenure = vm["tenure"].as<unsigned>();
-		const unsigned iters = vm["iters"].as<unsigned>();
-		const unsigned iterDecrease = vm["iterDecrease"].as<unsigned>();
-		const unsigned bjSize = vm["bjSize"].as<unsigned>();
-		const unsigned maxD = vm["maxD"].as<unsigned>();
-		const unsigned maxC = vm["maxC"].as<unsigned>();
-		const unsigned maxMillisecs = vm["maxMillisecs"].as<unsigned>();
-
-
-		if(startTypeStr.compare("insa")==0)
-			startType = INSA_START;
-		else if(startTypeStr.compare("rand")==0)
-			startType = RAND_START;
-		else
-			throw errorText("invalid start type", "main()", "main.cpp");
-
-#ifndef NDEBUG
-		cout << "DEBUG MODE\n";
-		cout << "instPath:" << instPath << endl;
-		cout << "startType: " << startTypeStr << endl;
-		cout << "tenure:" << tenure << " iters:" << iters << " iterDecrease:" << iterDecrease << " bjSize:" << bjSize << " maxD:" << maxD << " maxC:" << maxC << endl;
-#endif
-
-		// (4) execute code
-	    Tabu::nosmuTabu(instPath, tenure, iters, iterDecrease, bjSize, maxD, maxC, startType, maxMillisecs);
-
-	}catch(const string & e) {
-		cout << e << endl;
-	}		
-
-	return 0;
-}
-*/

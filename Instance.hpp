@@ -17,9 +17,6 @@
 
 using namespace boost;
 
-
-
-#ifdef VANILLA_PSS
 class Poset {
 public:
 	Poset(const vector<pair<unsigned, unsigned>> & precs, unsigned _nEl) : nEl(_nEl), children(_nEl), parents(_nEl), cg(_nEl) {
@@ -41,8 +38,6 @@ public:
 	
 	~Poset() {  }
 
-
-
 	bool operator!=(const Poset & p) { return !((*this)==p); }
 	bool operator==(const Poset & p) {
 
@@ -63,8 +58,6 @@ public:
 		return true;
 	}
 	
-
-
 	//@return: created cycle doing so?
 	bool addAll(const vector<pair<unsigned, unsigned>> & precs) {
 		bool anyCycle = false;
@@ -73,7 +66,6 @@ public:
 		}
 		return anyCycle;
 	}
-
 
 	//@return: created cycle doing so?
 	bool addPrec(unsigned from, unsigned to) {
@@ -109,7 +101,6 @@ public:
 		return cg.hasCycle();
 	}
 
-
 	string toString() const {		
 		string str = (cg.hasCycle() ? "\t\tCycle" : "\t\tNo Cycle");
 		str.append("   ;   roots{ ");
@@ -143,7 +134,6 @@ public:
 		return str;
 	}
 	
-
 	double orderStr() const {
 		double os = 0.0;
 
@@ -173,9 +163,6 @@ public:
 	vector<vector<unsigned>> parents;
 	ClosedGraph<MAX_MACHS> cg; //takes into account the transitive closure
 };
-#endif //VANILLA_PSS
-
-
 
 class Inst {
 public:
@@ -183,23 +170,13 @@ public:
 	Inst(const string & filePath) { parse(filePath);}
 	~Inst() { }
 
-
 	string toString() const {
 		string str = "";
 
 		str.append("J: " + unsigStr(J));
 		str.append(" ; M: " + unsigStr(M));
 		str.append(" ; O: " + unsigStr(O));
-#ifdef PARALLEL_MACHS
-		str.append(" ; K: " + unsigStr(K));
-#endif //PARALLEL_MACHS
-#ifdef VAR_PARALLEL_MACHS
-		str.append("\nvarK: ");
-		for(const unsigned u : varK) {
-			str.append(" " + unsigStr(u));
-		}
-		str.append(" - maxK(" + unsigStr(maxK) + ")");
-#endif //VAR_PARALLEL_MACHS
+
 		str.append("\nP:");	
 		for(unsigned u=1 ; u<O; u++)
 			str.append(unsigStr(u)+"(" + unsigStr(P[u])+")  ");
@@ -210,28 +187,6 @@ public:
 		str.append("\nmSize:");
 		for(unsigned n : mSize)
 			str.append(" " + unsigStr(n));
-		/*
-		str.append("\njStart:");
-		for(unsigned pos : jStart)
-			str.append(" " + unsigStr(pos));
-		str.append("\nmStart:");
-		for(unsigned pos : mStart)
-			str.append(" " + unsigStr(pos));
-		*/
-		/*
-		str.append("\noperJobBeg:");
-		for(unsigned pos : operJobBeg)
-			str.append(" " + unsigStr(pos));
-		str.append("\noperJobEnd:");
-		for(unsigned pos : operJobEnd)
-			str.append(" " + unsigStr(pos));
-		str.append("\noperMachBeg:");
-		for(unsigned pos : operMachBeg)
-			str.append(" " + unsigStr(pos));
-		str.append("\noperMachEnd:");
-		for(unsigned pos : operMachEnd)
-			str.append(" " + unsigStr(pos));
-		*/
 
 		str.append("\njobOpers: ");
 		for(const vector<unsigned> & aJob : jobOpers) {
@@ -253,7 +208,6 @@ public:
 		for(unsigned pos : operToM)
 			str.append(" " + unsigStr(pos));
 
-#ifdef VANILLA_PSS		
 		str.append("\njmToIndex: ");
 		assert(jmToIndex.size() == J);
 		for(unsigned j=0; j<J; j++) {
@@ -263,7 +217,6 @@ public:
 				str.append(" "+unsigStr(jmToIndex[j][m]));
 			}
 		}
-#endif //VANILLA_PSS
 
 		str.append("\nroots: ");
 		for(unsigned o : roots)
@@ -288,22 +241,10 @@ public:
 				str.append(","+unsigStr(prevO));
 		}
 
-#ifdef VANILLA_PSS
 		assert(posets.size() == J);
 		for(const Poset & aPoset : posets)
 			str.append("\n"+aPoset.toString());
-#endif //VANILLA_PSS
-#ifdef EXTENDED_JSS
-		str.append("\npriority:");
-		for(unsigned p : priority)
-				str.append(" "+unsigStr(p));
-		str.append("\n:jobTotalPrec:");
-		for(unsigned j=0; j<J; j++) {
-			str.append("\n\tJ"+unsigStr(j)+":");
-			for(unsigned o : jobTotalPrec[j])
-				str.append(" "+unsigStr(o));
-		}
-#endif //EXTENDED_JSS
+
 		return str;
 	}
 
@@ -438,91 +379,6 @@ public:
 #endif
 	}
 
-
-	// LB1 = max{min{rl : l in Mi} + sum[l in Mi] + min{ql : l in Mi} : i in {1,...,m}}
-	//rl and ql are not straight heads/tails but the sum of all elements that come before it
-	unsigned lowerBoundAllBefore() const {
-		assert(O > 0);
-
-		vector<unsigned> sumBefore(O, 0);
-		vector<unsigned> sumAfter(O,0);
-		vector<bool> reach(O);
-		vector<unsigned> Q(O, 0);
-		unsigned qInsert;
-		unsigned qAccess;
-		unsigned curOp;
-
-		unsigned minHead;
-		unsigned minTail;
-		unsigned machT;
-		unsigned lb = 0;
-		
-		for(unsigned o=1; o<O; o++) {
-			fill(reach.begin(), reach.end(), false);
-			qInsert = 0;
-			qAccess = 0;
-			Q[qInsert++] = o;
-			while(qAccess < qInsert) {
-				curOp = Q[qAccess++];
-				assert(operToJ[o] == operToJ[curOp]);
-				for(unsigned no : next[curOp]) {
-					if( ! reach[no]) {
-						reach[no] = true;
-						assert(qInsert < O);
-						Q[qInsert++] = no;
-					}
-				}
-			}
-
-			for(unsigned targO=1; targO<O; targO++) {
-				if(reach[targO])
-					sumBefore[targO] += P[o];
-			}
-		}
-
-		for(unsigned o=1; o<O; o++) {
-			fill(reach.begin(), reach.end(), false);
-			qInsert = 0;
-			qAccess = 0;
-			Q[qInsert++] = o;
-			while(qAccess < qInsert) {
-				curOp = Q[qAccess++];
-				assert(operToJ[o] == operToJ[curOp]);
-				for(unsigned no : prev[curOp]) {
-					if( ! reach[no]) {
-						reach[no] = true;
-						assert(qInsert < O);
-						Q[qInsert++] = no;
-					}
-				}
-			}
-
-			for(unsigned targO=1; targO<O; targO++) {
-				if(reach[targO])
-					sumAfter[targO] += P[o];
-			}
-		}
-
-
-		for(const vector<unsigned> & aMach : machOpers) {
-			minHead = UINT_MAX;
-			minTail = UINT_MAX;
-			machT = 0;
-
-			for(unsigned o : aMach) {
-				assert(o!=0);
-				assert(o<O);
-				minHead = min(minHead, sumBefore[o]);
-				minTail = min(minTail, sumAfter[o]);
-				machT += P[o];
-			}
-			lb = max(lb, minHead+machT+minTail);
-		}
-		return lb;
-	}
-
-
-
 	//max for each machine: of min head + min tail + procTs of that machine
 	unsigned lowerBoundNasiri(vector<unsigned> & indeg, vector<unsigned> & Q) const {
 		assert(O > 0);
@@ -559,26 +415,6 @@ public:
 		return lb;
 	}
 
-
-
-	double avrgOrderStr() const {
-#ifdef EXTENDED_JSS
-		return 1.0;
-#endif //EXTENDED_JSS
-#ifdef VANILLA_PSS
-		double totalOS = 0.0;
-
-		for(const Poset &p : posets) {
-			totalOS += p.orderStr();
-		}
-
-		totalOS /= (double)(posets.size());
-
-		return totalOS;
-#endif //VANILLA_PSS
-	}
-
-
 	//max of lowerBoundnasiri and job lower bound
 	unsigned lowerBoundTkz(vector<unsigned> & indeg, vector<unsigned> & Q) const {
 		unsigned lb = lowerBoundNasiri(indeg, Q);
@@ -593,7 +429,6 @@ public:
 
 		return lb;
 	}
-
 
 	//max of lowerBoundnasiri and job lower bound
 	unsigned lowerBoundTkz() const {
@@ -621,8 +456,6 @@ public:
 		
 		return lb;
 	}
-
-
 
 	bool verifySchedule(const vector<unsigned> & starts, unsigned expecMakes) const {
 		unsigned foundMakes = 0;
@@ -684,37 +517,33 @@ public:
 
 	void iToR2(const vector<unsigned>& starts) {
 
-#ifdef RFILE
 		cout << "machine task timeStart timeEnd";
 
 		for (unsigned i = 1; i < O; ++i) {
 			cout << operToM[i] << " " << operToJ[i] << " " << starts[i] << " " << starts[i] + P[i] << endl;
 		}
-#endif
 	}
 
 	void iToR(const vector<unsigned> & starts) const{
-		#ifdef RFILE
-    	cout << "library(candela)" << endl;
-    	cout << "data <- list(" << endl;
-    	for(int m = 0; m < M; m++){
+    cout << "library(candela)" << endl;
+    cout << "data <- list(" << endl;
+    for(unsigned m = 0; m < M; m++){
         
-    	    for(int j = 0; j < J;j++){
+			for(unsigned j = 0; j < J;j++){
 				int i  = jmToIndex[j][m];
-    	        cout<<"  list(label = 'task "<< j <<"',name='machine " << m <<"', level=" <<m<<", start="<< starts[i]<<", end="<< starts[i] +  P[i]<<")";
-     	       if( m +1 != M || j+1 != J) cout <<",";
-     	       cout << endl;
-     	   }
-   	 }
-    	cout <<")" << endl;
-    	cout << "candela('GanttChart'," << endl;
-    	cout << "    data=data, label='name', " << endl;
-    	cout << "    start='start', end='end', level='level', " << endl;
-    	cout << "    width=" <<J*100 <<", height="<< M * 100<<")" << endl;
-		#endif
+    	  cout<<"  list(label = 'task "<< j <<"',name='machine " << m <<"', level=" <<m<<", start="<< starts[i]<<", end="<< starts[i] +  P[i]<<")";
+     	  if( m +1 != M || j+1 != J) cout <<",";
+     	  cout << endl;
+     	}
+   	}
+    cout <<")" << endl;
+    cout << "candela('GanttChart'," << endl;
+    cout << "    data=data, label='name', " << endl;
+    cout << "    start='start', end='end', level='level', " << endl;
+    cout << "    width=" <<J*100 <<", height="<< M * 100<<")" << endl;
 	}
 
-	void calcPenalties(const vector<unsigned> & starts, unsigned &  ePenalty, unsigned & lPenalty){
+	void calcPenalties(const vector<unsigned> & starts, double&  ePenalty, double& lPenalty, vector<double>& operPenalties){
 		ePenalty = 0;
 		lPenalty = 0;
 		int curDueDate;
@@ -722,20 +551,25 @@ public:
 		double curTardiness;
 		double curEarliness;
 		//this->iToR(starts);
+
+		operPenalties.resize(O, 0);
+
 		for(unsigned o=1; o<O; ++o){
 
 			curStart = starts[o];
 			curDueDate = deadlines[o];
 			
-			curEarliness = max(curDueDate-(curStart+(int)P[o]), 0);
-			curTardiness = max((curStart+(int)P[o])-curDueDate, 0);
+			curEarliness = max(curDueDate-(curStart+(int)P[o]), 0) * earlPenalties[o];
+			curTardiness = max((curStart+(int)P[o])-curDueDate, 0) * tardPenalties[o];
 
 			assert(curEarliness >= 0);
 			assert(curTardiness >= 0);
 			ePenalty += curEarliness;
 			lPenalty += curTardiness;
+			operPenalties[o] = curEarliness > 0 ? curEarliness : curTardiness;
 		}
 	}
+
 	void printPenaltys(const vector<unsigned> & starts, const unsigned & makes){
 		
 		double sumTardPenaltys = 0;
@@ -745,7 +579,12 @@ public:
 		int curStart;
 		double curTardiness;
 		double curEarliness;
+
+#ifdef RFILE
 		iToR2(starts);
+		return;
+#endif //RFILE
+
 		for(unsigned o=1; o<O; ++o){
 
 			curStart = starts[o];
@@ -757,13 +596,39 @@ public:
 			assert(curEarliness >= 0);
 			assert(curTardiness >= 0);
 
-			sumEarlPenaltys += curEarliness*earlPenaltys[o];
-			sumTardPenaltys += curTardiness*tardPenaltys[o];
+			sumEarlPenaltys += curEarliness*earlPenalties[o];
+			sumTardPenaltys += curTardiness*tardPenalties[o];
 		}
 
 		sumPenaltys = sumEarlPenaltys + sumTardPenaltys;
 
+#ifdef PRINT_SCHEDULE
+
+		for (unsigned j = 0; j < J; ++j) {
+
+			printf("%02d - ", j);
+
+			for (unsigned m = 0; m < M; ++m) {
+				int i = jmToIndex[j][m];
+				curStart = starts[i];
+				curDueDate = deadlines[i];
+				curEarliness = max(curDueDate - (curStart + (int)P[i]), 0);
+				curTardiness = max((curStart + (int)P[i]) - curDueDate, 0);
+				printf("[%03u|%03u|%03u|%2.0f|%2.0f] ", starts[i], P[i], deadlines[i], curEarliness, curTardiness);
+			}
+			cout << endl;
+		}
+
+		return;
+#endif //PRINT_SCHEDULE
+
+#ifndef PRINT_ONLY_RESULT
 		cout << sumPenaltys << " " << sumEarlPenaltys << " " << sumTardPenaltys << " ";
+#endif //PRINT_ONLY_RESULT
+#ifdef PRINT_ONLY_RESULT
+		cout << sumPenaltys;
+#endif // PRINT_ONLY_RESULT
+
 
 #ifdef NEIGHBOURS_NB
 		double mean = 0;
@@ -777,26 +642,6 @@ public:
 #endif // NEIGHBOURS_NB
 
 		cout << endl;
-
-
-		#ifdef PRINT_SCHEDULE
-		
-		for(int j = 0; j < J; ++j){
-			
-			printf("%02d - ", j);
-
-			for(int m = 0; m< M; ++m ){
-				int i  = jmToIndex[j][m];
-				curStart = starts[i];
-				curDueDate = deadlines[i];
-				curEarliness = max(curDueDate-(curStart+(int)P[i]), 0);
-				curTardiness = max((curStart+(int)P[i])-curDueDate, 0);
-				printf("[%03u|%03u|%03u|%2.0f|%2.0f] ", starts[i], P[i],deadlines[i],curEarliness,curTardiness);
-			}
-			cout << endl;
-		}
-
-		#endif 
 	}
 
 
@@ -805,131 +650,25 @@ public:
 		assert(o1 < O   &&   o1!=0);
 		assert(o2 < O   &&   o2!=0);
 		assert(o1!=0   &&   o2!=0);
-#ifdef EXTENDED_JSS
-		if(operToJ[o1] != operToJ[o2])
-			return false;
-		assert(priority[o1] != priority[o2]);
-		return priority[o1] < priority[o2];
-#endif //EXTENDED_JSS
-#ifdef VANILLA_PSS
+
 		if(operToJ[o1] != operToJ[o2])
 			return false;
 		return posets[operToJ[o1]].cg.path(operToM[o1], operToM[o2]);
-#endif //VANILLA_PSS
 	}
 
-	//XXX TODO
-#ifdef EXTENDED_JSS
 	void parse(const string & filePath) {
 		P.clear();
 		operToJ.clear(); 
 		operToM.clear();
 		jSize.clear();
 		mSize.clear();
-		jobOpers.clear();
-		machOpers.clear();
-
-		string bufferStr;
-		unsigned curOp = 1;//dummy implcitly read
-		unsigned curJsize;
-		unsigned curM;
-
-		ifstream streamFromFile;
-		streamFromFile.open(filePath);
-		if( ! streamFromFile.is_open())
-			throw errorText("Could not open instance file: "+filePath, "Instance.hpp", "Inst::parse()");
-
-		streamFromFile >> bufferStr;
-		assert(bufferStr.compare("O:") == 0);
-		streamFromFile >> O;
-		O++;//including dummy
-
-		streamFromFile >> bufferStr;
-		assert(bufferStr.compare("J:") == 0);
-		streamFromFile >> J;
-
-		streamFromFile >> bufferStr;
-		assert(bufferStr.compare("M:") == 0);
-		streamFromFile >> M;
-
-		//Adjusting sizes
-		P.resize(O);
-		jSize.resize(J,0);
-		mSize.resize(M,0);
-		jobOpers.resize(J);
-		machOpers.resize(M);
-		operToJ.resize(O);
-		operToM.resize(O);
-		next.resize(O);
-		prev.resize(O);
-		priority.resize(O);
-		jobTotalPrec.resize(J);
-
-		streamFromFile >> bufferStr;
-		assert(bufferStr.compare("P:") == 0);
-
-		for(unsigned curJ=0; curJ<J; curJ++) {
-			streamFromFile >> curJsize;
-			streamFromFile >> bufferStr;
-			assert(bufferStr.compare("-") == 0);
-
-			jSize[curJ] = curJsize;
-
-			roots.push_back(curOp);
-
-			for(unsigned i=0; i<curJsize; i++) {
-				assert(curOp < O);
-				streamFromFile >> P[curOp];
-				assert(P[curOp] > 0);
-				streamFromFile >> curM;
-
-				mSize[curM]++;
-
-				streamFromFile >> bufferStr;
-				assert(bufferStr.compare(";") == 0);
-
-				jobOpers[curJ].push_back(curOp);
-				jobTotalPrec[curJ].push_back(curOp);
-				machOpers[curM].push_back(curOp);
-
-				operToJ[curOp] = curJ;
-				operToM[curOp] = curM;
-
-				priority[curOp] = i;
-
-				if(i<curJsize-1)
-					next[curOp].push_back(curOp+1);
-				if(i>0)
-					prev[curOp].push_back(curOp-1);
-				
-				curOp++;
-			}
-
-			leafs.push_back(curOp-1);
-		}
-	}
-#endif //EXTENDED_JSS
-#ifdef VANILLA_PSS
-	void parse(const string & filePath) {
-		P.clear();
-		operToJ.clear(); 
-		operToM.clear();
-		jSize.clear();
-		mSize.clear();
-		/*operJobBeg.clear();
-		operJobEnd.clear();
-		operMachBeg.clear();
-		operMachEnd.clear();*/
-		/*jStart.clear();
-		  mStart.clear();*/
 		jobOpers.clear();
 		machOpers.clear();
 		deadlines.clear();
-		earlPenaltys.clear();
-		tardPenaltys.clear();
+		earlPenalties.clear();
+		tardPenalties.clear();
 		
 		string bufferStr;
-		//unsigned bufferT;
 		double bufferT;
 		vector<pair<unsigned, unsigned>> order;
 		unsigned fstM, sndM;
@@ -941,46 +680,15 @@ public:
 		streamFromFile.open(filePath);
 		if( ! streamFromFile.is_open())
 			throw errorText("Could not open instance file: "+filePath, "Instance.hpp", "Inst::parse()");
-		
-		/*while(true) {
-			streamFromFile >> bufferStr;
-			
-			if(streamFromFile.eof())
-				throw errorText("Expected #START# but reached eof", "Instance.hpp", "Inst::parse()");
-			
-			if(bufferStr.compare("#START#") == 0)
-				break;
-		}*/
 
-		/*streamFromFile >> bufferStr;
-		assert(bufferStr.compare("TotalJobs:") == 0);*/
 		streamFromFile >> J;
 		
-		/*streamFromFile >> bufferStr;
-		assert(bufferStr.compare("TotalMachines:") == 0);*/
 		streamFromFile >> M;
-
-#ifdef PARALLEL_MACHS
-		streamFromFile >> bufferStr;
-		assert(bufferStr.compare("Replications:") == 0);
-		streamFromFile >> K;
-#endif //PARALLEL_MACHS
-#ifdef VAR_PARALLEL_MACHS
-		/*streamFromFile >> bufferStr;
-		assert(bufferStr.compare("Replications:") == 0);
-		maxK = 0;
-		for(unsigned m=0; m<M; m++) {
-			streamFromFile >> bufferT;
-			assert(bufferT>=0  &&  bufferT<=5);
-			varK.push_back(bufferT);
-			maxK = max(maxK, bufferT);
-		}*/
-#endif //VAR_PARALLEL_MACHS
 
 		P.push_back(0);
 		deadlines.push_back(0);
-		earlPenaltys.push_back(0);
-		tardPenaltys.push_back(0); 
+		earlPenalties.push_back(0);
+		tardPenalties.push_back(0); 
 		operToJ.push_back(UINT_MAX);
 		operToM.push_back(UINT_MAX);
 
@@ -988,10 +696,6 @@ public:
 		O = 1;
 		jSize.resize(J,0);
 		mSize.resize(M,0);
-		/*
-		jStart.resize(J+1,1);
-		mStart.resize(M+1,1);
-		*/
 
 		jmToIndex.resize(extents[J][M]);
 		jobOpers.resize(J);
@@ -999,46 +703,37 @@ public:
 
 		unsigned auxM;
 
-		//Reading proc Ts
-		/*streamFromFile >> bufferStr;
-		assert(bufferStr.compare("Costs:") == 0);*/
 		for(unsigned j=0; j<J; j++) {
 			for(unsigned m=0; m<M; m++) {
 				streamFromFile >> auxM;
 				streamFromFile >> bufferT;
 
-				//NOT ready for zero times still - look must set next and prev
-				//REMEBER - > cant use only one dummy - more than one 0 in same job will be considered same
 				assert(bufferT != 0);
+				
+				P.push_back(bufferT);
+				assert(P[O] == bufferT);
+				jmToIndex[j][auxM] = O;
+				jobOpers[j].push_back(O);
+				machOpers[auxM].push_back(O);
 
-				if(bufferT != 0) {
-					P.push_back(bufferT);
-					assert(P[O] == bufferT);
-					jmToIndex[j][auxM] = O;
-					jobOpers[j].push_back(O);
-					machOpers[auxM].push_back(O);
+				streamFromFile >> bufferT;
+				deadlines.push_back(bufferT);
+				assert(deadlines[O] == bufferT);
+				streamFromFile >> bufferT;
+				earlPenalties.push_back(bufferT);
+				assert(earlPenalties[O] == bufferT);
+				streamFromFile >> bufferT;
+				tardPenalties.push_back(bufferT);
+				assert(tardPenalties[O] == bufferT);
 
-					streamFromFile >> bufferT;
-					deadlines.push_back(bufferT);
-					assert(deadlines[O] == bufferT);
-					streamFromFile >> bufferT;
-					earlPenaltys.push_back(bufferT);
-					assert(earlPenaltys[O] == bufferT);
-					streamFromFile >> bufferT;
-					tardPenaltys.push_back(bufferT);
-					assert(tardPenaltys[O] == bufferT);
-
-					O++;
-					operToJ.push_back(j);
-					operToM.push_back(auxM);
-					jSize[j]++;
-					mSize[auxM]++;
-				} else {
-					jmToIndex[j][auxM] = 0;
-				}
-
+				O++;
+				operToJ.push_back(j);
+				operToM.push_back(auxM);
+				jSize[j]++;
+				mSize[auxM]++;
 			}
 		}
+
 		assert(O <= J*M+1);
 		assert(operToJ.size() == O);
 		assert(operToM.size() == O);
@@ -1055,27 +750,13 @@ public:
 		next.resize(O);
 		prev.resize(O);
 
-		/*
-		for(unsigned j=1; j<=J; j++) {
-			assert(jSize[j-1] != 0);
-			jStart[j] = jStart[j-1]+jSize[j-1];
-		}
-		for(unsigned m=1; m<=M; m++) {
-			assert(mSize[m-1] != 0);
-			mStart[m] = mStart[m-1]+mSize[m-1];
-		}
-		*/
-
 		streamFromFile >> bufferT;
 		streamFromFile >> bufferT;
 
 		//Reading precedences
 		for(unsigned j=0; j<J; j++) {
-			/*streamFromFile >> bufferStr;
-			assert(bufferStr.compare("Job:") == 0);*/
 
 			order.clear();
-			//streamFromFile >> auxJSize;
 
 			fromDummy.clear();
 			toDummy.clear();
@@ -1090,9 +771,6 @@ public:
 				fstO = jmToIndex[j][fstM];
 				assert(fstO < O);
 				
-				/*streamFromFile >> bufferStr;
-				assert(bufferStr.compare("->") == 0);*/
-				
 				streamFromFile >> sndM;
 				assert(sndM < M);
 				sndO = jmToIndex[j][sndM];
@@ -1102,11 +780,6 @@ public:
 					next[fstO].push_back(sndO);
 					prev[sndO].push_back(fstO);
 				}
-
-				//TO GET 0 times - > here annotate which goes to which dummy and set in next 
-				//REMEBER - > can use only one dummy - more than one 0 in same job will be considered same
-				//if(fstO == 0)
-				//	fromDummy.push_back
 
 				order.push_back(pair<unsigned, unsigned>(fstM, sndM));
 				fstM = sndM;
@@ -1134,112 +807,9 @@ public:
 					leafs.push_back(jmToIndex[j][m]);
 			}
 		}
-		/*
-		operJobBeg.resize(O);
-		operJobEnd.resize(O);
-		operMachBeg.resize(O);
-		operMachEnd.resize(O);
-
-		for(unsigned o=1; o<O; o++) {
-			operJobBeg[o] = jStart[operToJ[o]];
-			operJobEnd[o] = jStart[operToJ[o]+1]-1;
-			operMachBeg[o] = mStart[operToM[o]];
-			operMachEnd[o] = mStart[operToM[o]+1]-1;
-		}
-		*/
 
 		streamFromFile.close();
 	}
-#endif //VANILLA_PSS
-
-
-#ifdef PARALLEL_MACHS
-	bool verifyPrallelSchedule(const vector<unsigned> & starts, unsigned makes) const {
-		unsigned foundMakes = 0;
-		vector<unsigned> conc;
-
-		//job order ok
-		for(unsigned o=1; o<O; o++) {
-			for(unsigned n : next[o]) {
-				if(starts[o]+P[o] > starts[n]) {
-					cout << "JOB ORDER NOT OK" << endl;
-					return false;
-				}
-			}
-		}
-
-		//verify makes
-		for(unsigned o=1; o<O; o++)
-			foundMakes = max(foundMakes, starts[o]+P[o]);
-		if(foundMakes != makes) {
-			cout << "MAKES NOT OK: " << foundMakes << endl;
-			return false;
-		}
-
-		//verify machines
-		for(unsigned t=0; t<makes; t++) {
-			for(unsigned m=0; m<M; m++) {
-				conc.clear();
-				for(unsigned o : machOpers[m]) {
-					if(starts[o] <= t   &&   starts[o]+P[o] > t)
-						conc.push_back(o);
-				}
-				if(conc.size() > K) {
-					cout << "TOO MANY CONCURRENT OPERS IN SAME MACHINE AT TIME: " << t << endl;
-					cout << "\t:";
-					for(unsigned o : conc) cout << "   " << o << "[" << starts[o] << "," <<  starts[o]+P[o] << "]";
-					cout << endl;
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-#endif //PARALLEL_MACHS
-
-#ifdef VAR_PARALLEL_MACHS
-	bool verifyPrallelSchedule(const vector<unsigned> & starts, unsigned makes) const {
-		unsigned foundMakes = 0;
-		vector<unsigned> conc;
-
-		//job order ok
-		for(unsigned o=1; o<O; o++) {
-			for(unsigned n : next[o]) {
-				if(starts[o]+P[o] > starts[n]) {
-					cout << "JOB ORDER NOT OK" << endl;
-					return false;
-				}
-			}
-		}
-
-		//verify makes
-		for(unsigned o=1; o<O; o++)
-			foundMakes = max(foundMakes, starts[o]+P[o]);
-		if(foundMakes != makes) {
-			cout << "MAKES NOT OK: " << foundMakes << endl;
-			return false;
-		}
-
-		//verify machines
-		for(unsigned t=0; t<makes; t++) {
-			for(unsigned m=0; m<M; m++) {
-				conc.clear();
-				for(unsigned o : machOpers[m]) {
-					if(starts[o] <= t   &&   starts[o]+P[o] > t)
-						conc.push_back(o);
-				}
-				if(conc.size() > varK[m]) {
-					cout << "TOO MANY CONCURRENT OPERS IN SAME MACHINE AT TIME: " << t << endl;
-					cout << "\t:";
-					for(unsigned o : conc) cout << "   " << o << "[" << starts[o] << "," <<  starts[o]+P[o] << "]";
-					cout << endl;
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-#endif //VAR_PARALLEL_MACHS
 
 	unsigned J;
 	unsigned M;
@@ -1266,15 +836,12 @@ public:
 
 	//JIT-JSS informations
 	vector<unsigned> deadlines; //<O> deadlines[o] is due-date of an operation o
-	vector<double> earlPenaltys; //<O> earlPenaltys[o] is earliness penalty of operation o
-	vector<double> tardPenaltys;//<O>	tardPenaltys[o] is tardiness penalty of operation o
+	vector<double> earlPenalties; //<O> earlPenalties[o] is earliness penalty of operation o
+	vector<double> tardPenalties;//<O>	tardPenalties[o] is tardiness penalty of operation o
 
 
 	//precedences
-#ifdef EXTENDED_JSS
-	vector<unsigned> priority; //<O> position in jobTotalPrec small number means higher prio
-	vector<vector<unsigned>> jobTotalPrec;//<J, jSize[J]> list in order of precedence
-#endif //EXTENDED_JSS
+
 #ifdef VANILLA_PSS
 	vector<Poset> posets; // italianos of job orders careful useing directly - use hasPrec - O(1) but expensive
 #endif //VANILLA_PSS
@@ -1284,87 +851,6 @@ public:
 	multi_array<unsigned,2> jmToIndex; //jmToIndex[j][m] = o -- may be dummy if doesnt exist
 #endif //VANILLA_PSS
 	
-#ifdef PARALLEL_MACHS
-	unsigned K;
-#endif //PARALLEL_MACHS
-
-#ifdef VAR_PARALLEL_MACHS
-	vector<unsigned> varK;
-	unsigned maxK;
-#endif //VAR_PARALLEL_MACHS
 
 };
 Inst inst;
-
-
-
-class ElementProb {
-
-#define LEEWAY_PRECISION 100
-
-public:
-	ElementProb() {}
-	~ElementProb() { }
-
-	//JOB/MACH - index
-	pair<int, unsigned> randElement() const {
-		int type;
-		unsigned index;
-
-		unsigned r = random_number<unsigned>(0, maxRand-1);
-
-		if(r<maxRandMach) {
-			type = MACH;
-			index = r/LEEWAY_PRECISION;
-			assert(index<inst.M);
-		} else {
-			type = JOB;
-			r -= maxRandMach;
-			assert(r<maxRandJob);
-			assert(r<mapJob.size());
-			index = mapJob[r];
-		}
-		
-		return pair<int, unsigned>(type,index);
-	}
-
-
-
-	void setMap() {
-		assert(inst.O > 0);
-
-		vector<unsigned> chance(inst.J);
-		unsigned mapIndex = 0;
-
-		maxRandJob = 0;
-		maxRandMach = LEEWAY_PRECISION * inst.M;
-
-		for(unsigned j=0; j<inst.J; j++) {
-#ifdef VANILLA_PSS
-			chance[j] = LEEWAY_PRECISION * (1.0 - (inst.posets[j].orderStr()));
-#endif //VANILLA_PSS
-#ifdef EXTENDED_JSS
-			chance[j] = 1.0;
-#endif //EXTENDED_JSS
-			assert(chance[j] <= LEEWAY_PRECISION);
-			maxRandJob += chance[j];
-		}
-		
-		mapJob.resize(maxRandJob);
-
-		for(unsigned j=0; j<inst.J; j++) {
-			for(unsigned r=0; r<chance[j]; r++) {
-				mapJob[mapIndex++] = j;
-			}
-		}
-
-		maxRand = maxRandJob + maxRandMach;
-	}
-
-	unsigned maxRand;
-	unsigned maxRandJob;//upper bound for random number to be selected
-	unsigned maxRandMach;
-	//cummulative chance for jobs - machines not in here since they are 1 always
-	vector<unsigned> mapJob;
-};
-

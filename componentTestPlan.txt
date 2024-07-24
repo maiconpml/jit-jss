@@ -1,5 +1,0 @@
--Just Tabu -
-
-Complete
-- change perturb -> insa - bubble - carlier
-- change search -> no search - local - tabu  

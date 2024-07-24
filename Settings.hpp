@@ -22,9 +22,10 @@ unsigned currentShownSeconds;
 #define UINFTY UINT_MAX
 #define ANALYZE_MODE
 
+//#define PRINT_ONLY_RESULT
 //#define PRINT_SCHEDULE
 //#define PRINT_ONLY_IS
-//#define NEIGHBOURS_NB 
+#define NEIGHBOURS_NB 
 
 #define SHIFT_OPERS
 
