@@ -1583,21 +1583,39 @@ public:
 
 	static void fillCandidatesCritic2(vector<pair<unsigned, unsigned>>& cands, vector<vector<unsigned>>& criticOper) {
 
-		set<pair<unsigned, unsigned>> candsAux;
+		//set<pair<unsigned, unsigned>> candsAux;
+		
 		// 
 		for (unsigned currentOp = 1; currentOp < inst.O; ++currentOp) {
 			// verify if there is a critic way
 			if (criticOper[currentOp].size() > 0) {
 
-				candsAux.insert(pair<unsigned, unsigned>(criticOper[currentOp][1], criticOper[currentOp][0]));
+				//candsAux.insert(pair<unsigned, unsigned>(criticOper[currentOp][1], criticOper[currentOp][0]));
+				cands.push_back(pair<unsigned, unsigned>(criticOper[currentOp][1], criticOper[currentOp][0]));
 
-				if (criticOper[currentOp].size() > 2)candsAux.insert(pair<unsigned, unsigned>(criticOper[currentOp][criticOper[currentOp].size() - 1], criticOper[currentOp][criticOper[currentOp].size() - 2]));
+				//if (criticOper[currentOp].size() > 2)candsAux.insert(pair<unsigned, unsigned>(criticOper[currentOp][criticOper[currentOp].size() - 1], criticOper[currentOp][criticOper[currentOp].size() - 2]));
+				if (criticOper[currentOp].size() > 2)cands.push_back(pair<unsigned, unsigned>(criticOper[currentOp][criticOper[currentOp].size() - 1], criticOper[currentOp][criticOper[currentOp].size() - 2]));
+			}
+
+		}
+
+		/*set<pair<unsigned, unsigned>>::iterator it = candsAux.begin();
+		for (it = candsAux.begin(); it != candsAux.end(); ++it) {
+			cands.push_back(*it);
+		}*/
+
+		unsigned op1Aux, op2Aux;
+		for (unsigned i = 0; i < cands.size(); ++i) {
+			op1Aux = cands[i].first;
+			op2Aux = cands[i].second;
+
+			for (unsigned j = i+1; j < cands.size(); ++j) {
+				if (cands[j].first == op1Aux && cands[j].second == op2Aux) {
+					cands.erase(cands.begin() + j);
+				}
 			}
 		}
 
-		for (set<pair<unsigned, unsigned>>::iterator it = candsAux.begin(); it != candsAux.end(); ++it) {
-			cands.push_back(*it);
-		}
 	}
 
 	static void fillCandidatesTestA(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& mach, vector<unsigned>& startTime, vector<unsigned>& operPenalties) {
