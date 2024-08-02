@@ -570,6 +570,16 @@ public:
 		}
 	}
 
+	void printOutForTest(const vector<unsigned> & starts){
+		cout << M <<" "<< J <<endl;
+		for(int a = 0; a < J; a++){
+			for(int b = 0; b<M;b++){
+				auxI = jmToIndex[a][b];
+				cout << b << " " << a << " " << P[auxI] << " " << starts[auxI] << " " << jobOpers[auxI] << endl;
+			}
+		}
+	}
+
 	void printPenaltys(const vector<unsigned> & starts, const unsigned & makes){
 		
 		double sumTardPenaltys = 0;
@@ -642,6 +652,8 @@ public:
 #endif // NEIGHBOURS_NB
 
 		cout << endl;
+
+		printOutForTest(starts);
 	}
 
 
@@ -667,7 +679,6 @@ public:
 		deadlines.clear();
 		earlPenalties.clear();
 		tardPenalties.clear();
-		
 		string bufferStr;
 		double bufferT;
 		vector<pair<unsigned, unsigned>> order;
@@ -850,7 +861,7 @@ public:
 #ifdef VANILLA_PSS
 	multi_array<unsigned,2> jmToIndex; //jmToIndex[j][m] = o -- may be dummy if doesnt exist
 #endif //VANILLA_PSS
-	
+
 
 };
 Inst inst;

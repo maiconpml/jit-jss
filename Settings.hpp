@@ -27,6 +27,8 @@ unsigned currentShownSeconds;
 //#define PRINT_ONLY_IS
 #define NEIGHBOURS_NB 
 
+#define TESTINSTANCE
+
 #define SHIFT_OPERS
 
 //#define REOPT_GAPS
@@ -85,6 +87,7 @@ unsigned currentShownSeconds;
 
 #define PARALLEL_INSA_START 7001
 #define PARALLEL_JOB_TAIL_START 7002
+
 
 
 vector<string> resultList;

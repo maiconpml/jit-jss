@@ -2561,4 +2561,5 @@ public:
 		double lPenalty;
 		double ePenalty;
 		double penalties;
+	
 	};
