@@ -517,8 +517,10 @@ namespace Tabu {
 					State::fillCandidatesTest1(cands, curState.mach);
 				} 
 				else{
-					State::findCriticOper(criticOper, curState.startTime, curState._job, curState._mach);
-					State::fillCandidatesCritic2(cands, criticOper);
+					//State::findCriticOper(criticOper, curState.startTime, curState._job, curState._mach);
+					
+					//State::fillCandidatesCritic2(cands, criticOper);
+					State::fillCandidatesCriticTotal(cands,curState.startTime, curState._job, curState._mach);
 				}
 #ifdef NEIGHBOURS_NB
 				neigh.push_back(cands.size());

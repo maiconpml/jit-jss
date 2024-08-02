@@ -1555,6 +1555,9 @@ public:
 		}
 	}
 
+
+
+
 	static void fillCandidatesTest1(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& mach) {
 
 		assert(mach.size() == inst.O);
@@ -1598,7 +1601,7 @@ public:
 			}
 
 		}
-
+		
 		/*set<pair<unsigned, unsigned>>::iterator it = candsAux.begin();
 		for (it = candsAux.begin(); it != candsAux.end(); ++it) {
 			cands.push_back(*it);
@@ -1612,6 +1615,34 @@ public:
 			for (unsigned j = i+1; j < cands.size(); ++j) {
 				if (cands[j].first == op1Aux && cands[j].second == op2Aux) {
 					cands.erase(cands.begin() + j);
+				}
+			}
+		}
+
+	}
+
+	static void fillCandidatesCriticTotal(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& starts, vector<unsigned> _job, vector<unsigned> _mach) {
+
+		for (unsigned op = 1; op < inst.O; ++op) {
+
+			if (starts[op] + inst.P[op] > inst.deadlines[op]) {
+	
+				unsigned auxOp = op;
+				vector<unsigned> opCritic;
+				
+				opCritic.push_back(op);
+				while(_job[auxOp] != 0 && _mach[auxOp]!=0){
+
+					while (_mach[auxOp] && starts[_mach[auxOp]] + inst.P[_mach[auxOp]] > starts[_job[auxOp]] + inst.P[_job[auxOp]]) {
+						opCritic.push_back(_mach[auxOp]);
+						auxOp = _mach[auxOp];
+					}
+					if(opCritic.size() > 1 ){
+						cands.push_back(pair<unsigned, unsigned>(opCritic[1], opCritic[0]));
+						if (opCritic.size() > 2)cands.push_back(pair<unsigned, unsigned>(opCritic[opCritic.size() - 1], opCritic[opCritic.size() - 2]));
+					}
+					auxOp = _job[auxOp];
+					opCritic.clear();
 				}
 			}
 		}

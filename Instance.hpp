@@ -570,15 +570,15 @@ public:
 		}
 	}
 
-	void printOutForTest(const vector<unsigned> & starts){
+	/*void printOutForTest(const vector<unsigned> & starts){
 		cout << M <<" "<< J <<endl;
 		for(int a = 0; a < J; a++){
 			for(int b = 0; b<M;b++){
-				auxI = jmToIndex[a][b];
+				unsigned auxI = jmToIndex[a][b];
 				cout << b << " " << a << " " << P[auxI] << " " << starts[auxI] << " " << jobOpers[auxI] << endl;
 			}
 		}
-	}
+	}*/
 
 	void printPenaltys(const vector<unsigned> & starts, const unsigned & makes){
 		
@@ -653,7 +653,7 @@ public:
 
 		cout << endl;
 
-		printOutForTest(starts);
+		//printOutForTest(starts);
 	}
 
 
