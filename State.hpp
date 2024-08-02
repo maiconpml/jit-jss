@@ -1647,6 +1647,16 @@ public:
 			}
 		}
 
+		unsigned op1Aux, op2Aux;
+		for (unsigned i = 0; i < cands.size(); ++i) {
+			op1Aux = cands[i].first;
+			op2Aux = cands[i].second;
+			for (unsigned j = i+1; j < cands.size(); ++j) {
+				if (cands[j].first == op1Aux && cands[j].second == op2Aux) {
+					cands.erase(cands.begin() + j);
+				}
+			}
+		}
 	}
 
 	static void fillCandidatesTestA(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& mach, vector<unsigned>& startTime, vector<unsigned>& operPenalties) {
