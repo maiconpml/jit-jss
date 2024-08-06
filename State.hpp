@@ -2009,7 +2009,7 @@ public:
 		vector<unsigned> newStarts(inst.O, 0);
 		vector<unsigned> startJobSuccessor(inst.J, UINT_MAX);
 		vector<unsigned> startMachSuccessor(inst.M, UINT_MAX);
-
+	
 		unsigned qInsert = Q.size();
 		unsigned curOp;
 		unsigned newMakes = 0;
@@ -2119,23 +2119,26 @@ public:
 			}
 		}
 
+		if (qAccess == inst.O - 1) {
+
 #ifdef SHIFT_OPERS
 #ifndef NDEBUG
-		inst.calcPenalties(dists, ePenalty, lPenalty, operPenalties);
-		
-		double testPenalties = ePenalty + lPenalty;
+			inst.calcPenalties(dists, ePenalty, lPenalty, operPenalties);
+
+			double testPenalties = ePenalty + lPenalty;
 #endif //NDEBUG
 
-		shiftOperations(dists, Q);
+			shiftOperations(dists, Q);
 #endif //SHIFT_OPERS
 
-		inst.calcPenalties(dists, ePenalty, lPenalty, operPenalties);
-		penalties = ePenalty + lPenalty;
-		startTime = dists;
+			inst.calcPenalties(dists, ePenalty, lPenalty, operPenalties);
+			penalties = ePenalty + lPenalty;
+			startTime = dists;
 
 #ifdef SHIFT_OPERS
-		assert(penalties <= testPenalties);
+			assert(penalties <= testPenalties);
 #endif //SHIFT_OPERS
+		}
 
 		return qAccess < inst.O - 1;
 	}
