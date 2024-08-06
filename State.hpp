@@ -1561,7 +1561,6 @@ public:
 	static void fillCandidatesTest1(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& mach) {
 
 		assert(mach.size() == inst.O);
-		assert(cands.capacity() == inst.O);
 
 		for (unsigned currentOp = 1; currentOp < inst.O; ++currentOp) {
 
