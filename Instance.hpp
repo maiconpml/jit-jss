@@ -517,10 +517,14 @@ public:
 
 	void iToR2(const vector<unsigned>& starts) {
 
-		cout << "machine task timeStart timeEnd";
+		cout << "machines tasks timeStarts timeEnds penaltie\n";
 
 		for (unsigned i = 1; i < O; ++i) {
-			cout << operToM[i] << " " << operToJ[i] << " " << starts[i] << " " << starts[i] + P[i] << endl;
+			cout << operToM[i] << " " << operToJ[i] << " " << starts[i] << " " << starts[i] + P[i] << " ";
+			if (starts[i] + P[i] < deadlines[i]) cout << "1";
+			else if (starts[i] + P[i] > deadlines[i]) cout << "2";
+			else cout << "0";
+			cout << endl;
 		}
 	}
 
