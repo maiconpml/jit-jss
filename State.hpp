@@ -1658,6 +1658,45 @@ public:
 			}
 		}
 	}
+
+	static void fillCandidatesCriticTotal2(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& starts, vector<unsigned> _job, vector<unsigned> _mach, vector<unsigned>& prev) {
+
+		for (unsigned op = 1; op < inst.O; ++op) {
+
+			if (starts[op] + inst.P[op] > inst.deadlines[op]) {
+
+				unsigned auxOp = op;
+				vector<unsigned> opCritic;
+
+				opCritic.push_back(op);
+				while (_job[auxOp] != 0 || _mach[auxOp] != 0) {
+
+					while (prev[auxOp] && inst.operToM[auxOp] == inst.operToM[prev[auxOp]]) {
+						assert(_mach[auxOp] == prev[auxOp]);
+						opCritic.push_back(prev[auxOp]);
+						auxOp = prev[auxOp];
+					}
+					if (opCritic.size() > 1) {
+						cands.push_back(pair<unsigned, unsigned>(opCritic[1], opCritic[0]));
+						if (opCritic.size() > 2)cands.push_back(pair<unsigned, unsigned>(opCritic[opCritic.size() - 1], opCritic[opCritic.size() - 2]));
+					}
+					auxOp = _job[auxOp];
+					opCritic.clear();
+				}
+			}
+		}
+
+		unsigned op1Aux, op2Aux;
+		for (unsigned i = 0; i < cands.size(); ++i) {
+			op1Aux = cands[i].first;
+			op2Aux = cands[i].second;
+
+			for (unsigned j = i + 1; j < cands.size(); ++j) {
+				if (cands[j].first == op1Aux && cands[j].second == op2Aux) {
+					cands.erase(cands.begin() + j);
+				}
+			}
+		}
 	}
 
 	static void fillCandidatesTestA(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& mach, vector<unsigned>& startTime, vector<unsigned>& operPenalties) {
