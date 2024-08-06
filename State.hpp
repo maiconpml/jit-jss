@@ -1631,7 +1631,7 @@ public:
 				vector<unsigned> opCritic;
 				
 				opCritic.push_back(op);
-				while(_job[auxOp] != 0 && _mach[auxOp]!=0){
+				while(_job[auxOp] != 0 || _mach[auxOp]!=0){
 
 					while (_mach[auxOp] && starts[_mach[auxOp]] + inst.P[_mach[auxOp]] > starts[_job[auxOp]] + inst.P[_job[auxOp]]) {
 						opCritic.push_back(_mach[auxOp]);
