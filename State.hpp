@@ -1631,7 +1631,7 @@ public:
 				vector<unsigned> opCritic;
 				
 				opCritic.push_back(op);
-				while(_job[auxOp] != 0 && _mach[auxOp]!=0){
+				while(_job[auxOp] != 0 || _mach[auxOp]!=0){
 
 					while (_mach[auxOp] && starts[_mach[auxOp]] + inst.P[_mach[auxOp]] > starts[_job[auxOp]] + inst.P[_job[auxOp]]) {
 						opCritic.push_back(_mach[auxOp]);
@@ -1651,12 +1651,14 @@ public:
 		for (unsigned i = 0; i < cands.size(); ++i) {
 			op1Aux = cands[i].first;
 			op2Aux = cands[i].second;
-			for (unsigned j = i+1; j < cands.size(); ++j) {
+
+			for (unsigned j = i + 1; j < cands.size(); ++j) {
 				if (cands[j].first == op1Aux && cands[j].second == op2Aux) {
 					cands.erase(cands.begin() + j);
 				}
 			}
 		}
+	}
 	}
 
 	static void fillCandidatesTestA(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& mach, vector<unsigned>& startTime, vector<unsigned>& operPenalties) {
