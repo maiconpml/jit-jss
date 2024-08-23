@@ -554,15 +554,22 @@ public:
 		}
 	}
 
-	/*void printOutForTest(const vector<unsigned> & starts){
+	void printOutForTest(const vector<unsigned> & starts){
 		cout << M <<" "<< J <<endl;
 		for(int a = 0; a < J; a++){
 			for(int b = 0; b<M;b++){
+				int o = -1;
 				unsigned auxI = jmToIndex[a][b];
-				cout << b << " " << a << " " << P[auxI] << " " << starts[auxI] << " " << jobOpers[auxI] << endl;
+				for(int i=0; i<M; i++){
+					if(jobOpers[a][i]== auxI){
+						o = i;
+						break;
+					}
+			}
+				cout << b << " " << a << " " << P[auxI] << " " << starts[auxI] << " " << o<< endl;
 			}
 		}
-	}*/
+	}
 
 	void printPenalties(const vector<unsigned> & starts, const unsigned & makes){
 		
@@ -635,9 +642,12 @@ public:
 		cout << mean << " ";
 #endif // PRINT_NEIGHBOURS_NB
 
-		cout << endl;
+		
+#ifdef PRINT_VERIFY_OUTPUT 
+		printOutForTest(starts);
 
-		//printOutForTest(starts);
+#endif
+	cout << endl;
 	}
 
 
