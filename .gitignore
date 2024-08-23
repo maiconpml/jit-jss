@@ -15,4 +15,4 @@ out/
 build
 release
 debug
-results
+.vscode/settings.json
