@@ -37,8 +37,6 @@ public:
 		return true;
 	}
 
-
-
 	void alloc() {
 		assert(inst.O != 0);
 		assert( ! isAlloced());
@@ -47,8 +45,6 @@ public:
 		mach.resize(inst.O);
 		_mach.resize(inst.O);
 	}
-
-
 
 	void clear() {
 		assert(inst.O != 0);
@@ -62,8 +58,6 @@ public:
 		fill(mach.begin(), mach.end(), 0);
 		fill(_mach.begin(), _mach.end(), 0);
 	}
-
-
 
 	string toString() const {
 		assert(job[0] == 0);
@@ -138,8 +132,6 @@ public:
 		return str;
 	}
 
-
-
 	//x and y in same job 
 	//max(head(Pm[y]), head(Pj[x]))+procT[X]+procT[Y]+max(tail(Sj]y]), tail(Sm[x]))
 	//max(head(Pj[x], head(Pm[y])) +procT[y] + tail(Sm[x])
@@ -187,43 +179,43 @@ public:
 		return lb;
 	}
 
-	void testSwap(unsigned o1, unsigned o2) {
+	//void swap(unsigned o1, unsigned o2) {
 
-		assert(o1 != 0);
-		assert(o2 != 0);
-		assert(o1 != o2);
+	//	assert(o1 != 0);
+	//	assert(o2 != 0);
+	//	assert(o1 != o2);
 
-		unsigned prevO1 = _mach[o1];
-		unsigned postO1 = mach[o1];
-		unsigned prevO2 = _mach[o2];
-		unsigned postO2 = mach[o2];
+	//	unsigned prevO1 = _mach[o1];
+	//	unsigned postO1 = mach[o1];
+	//	unsigned prevO2 = _mach[o2];
+	//	unsigned postO2 = mach[o2];
 
-		mach[o1] = postO2;
-		_mach[o2] = prevO1;
+	//	mach[o1] = postO2;
+	//	_mach[o2] = prevO1;
 
-		if (prevO1 != 0) 
-			mach[prevO1] = o2;
+	//	if (prevO1 != 0) 
+	//		mach[prevO1] = o2;
 
-		if (postO2 != 0) 
-			_mach[postO2] = o1;
+	//	if (postO2 != 0) 
+	//		_mach[postO2] = o1;
 
-		if (postO1 == o2) {
-			_mach[o1] = o2;
+	//	if (postO1 == o2) {
+	//		_mach[o1] = o2;
 
-			mach[o2] = o1;
+	//		mach[o2] = o1;
 
-			return;
-		}
+	//		return;
+	//	}
 
-		_mach[o1] = prevO2;
-		mach[o2] = postO1;
+	//	_mach[o1] = prevO2;
+	//	mach[o2] = postO1;
 
-		if (postO1 != 0) 
-			_mach[postO1] = o2;
-		
-		if (prevO2 != 0) 
-			mach[prevO2] = o1;
-	}
+	//	if (postO1 != 0) 
+	//		_mach[postO1] = o2;
+	//	
+	//	if (prevO2 != 0) 
+	//		mach[prevO2] = o1;
+	//}
 
 	
 	void swap(unsigned o1, unsigned o2) {
@@ -271,219 +263,6 @@ public:
 		}
 #endif //VANILLA_PSS
 	}
-
-
-
-	//moves o1 next to o2 passing through it
-	//o2 stays still while o1 is moved until it goes through o2
-	//expects that moving fomr o1 in the <direction> will hit oBailiff eventually
-	void shift(unsigned type, unsigned direction, unsigned oBailiff, unsigned oProvost) {
-#ifndef NDEBUG
-		unsigned iters = 0;
-		assert(oProvost != 0);
-		assert(oBailiff != 0);
-		assert(direction==FORTH   ||   direction==BACK);
-		assert((type==JOB && inst.operToJ[oProvost] == inst.operToJ[oBailiff])
-			   ||  (type==MACH && inst.operToM[oProvost] == inst.operToM[oBailiff]));
-#endif
-
-
-		//for each swap: BEFORE alpha -> x -> y -> omega
-		//                       AFTER   alpha -> y -> x -> omega
-		unsigned alpha;
-		unsigned x;
-		unsigned y;
-		unsigned omega;
-
-		if(direction == FORTH) {
-			x = oProvost;
-			if(type == JOB)
-				y = job[x];
-			else
-				y = mach[x];
-		} else {//BACK
-			y = oProvost;
-			if(type == JOB)
-				x = _job[y];
-			else
-				x = _mach[y];
-		}
-
-		//job shift
-		if(type == JOB) {
-		    while(true) {
-#ifndef NDEBUG
-				iters++;
-				assert(x!=0);
-				assert(y!=0);
-				assert(iters<inst.O);
-#endif
-				alpha = _job[x];
-				omega = job[y];
-				//normal arcs
-				if(alpha != 0)
-					job[alpha] = y;
-				job[y] = x;
-				job[x] = omega;
-				//inverted arcs
-				if(omega != 0)
-					_job[omega] = x;
-				_job[x] = y;
-				_job[y] = alpha;
-
-				if(direction == FORTH) {
-					if(y==oBailiff)
-						break;
-					y = job[x];
-				} else {
-					if(x==oBailiff)
-						break;
-					x = _job[y];
-				}
-			}//while true for shifting until swap oProvost and oBailiff
-		} else { // mach shift
-			while(true) {
-#ifndef NDEBUG
-				iters++;
-				assert(x!=0);
-				assert(y!=0);
-				assert(iters<inst.O);
-#endif
-				alpha = _mach[x];
-				omega = mach[y];
-				//normal arcs
-				if(alpha != 0)
-					mach[alpha] = y;
-				mach[y] = x;
-				mach[x] = omega;
-				//inverted arcs
-				if(omega != 0)
-					_mach[omega] = x;
-				_mach[x] = y;
-				_mach[y] = alpha;
-
-				if(direction == FORTH) {
-					if(y==oBailiff)
-						break;
-					y = mach[x];
-				} else {
-					if(x==oBailiff)
-						break;
-					x = _mach[y];
-				}
-			}//while true for shifting until swap oProvost and oBailiff
-		}
-	}	
-
-
-
-	void makeRand(vector<unsigned> & indeg, vector<unsigned> & Q) {
-#ifndef NDEBUG
-		assert(isAlloced());
-		assert(isClear());
-		assert(indeg.size() == inst.O);
-		assert(Q.size() == inst.O);
-		fill(indeg.begin(), indeg.end(), 0);
-#endif
-
-		unsigned qInsert;
-		unsigned qAccess;
-		unsigned curOp;
-		unsigned lastOp;
-		unsigned rootOp;
-
-		unsigned swapCount;
-
-		vector<unsigned> opList;
-		opList.reserve(inst.O);
-
-		vector<unsigned> mList(inst.M);
-
-		//insert JOBS in topo order
-		for(unsigned j=0; j<inst.J; j++) {
-			qInsert = 0;
-			qAccess = 0;
-
-			//set indeg
-			opList = inst.jobOpers[j];
-			random_shuffle(opList.begin(), opList.end());
-			for(unsigned o : opList) {
-				assert(inst.operToJ[o] == j);
-				assert(indeg[o] == 0);
-				indeg[o] = inst.prev[o].size();
-				if(indeg[o] == 0)
-					Q[qInsert++] = o;
-			}
-			assert(qInsert>0);
-
-			curOp = 0;
-
-			//topological walk
-			while(qAccess < qInsert) {
-				assert(qAccess<inst.M);
-				assert(qAccess<Q.size());
-
-				lastOp = curOp;
-				curOp = Q[qAccess++];
-
-				assert(curOp != 0);
-				assert(curOp < inst.O);
-				assert(indeg[curOp] == 0);
-				assert(inst.operToJ[curOp] == j);
-
-				if(lastOp != 0) job[lastOp] = curOp;
-				_job[curOp] = lastOp;
-
-				//job precs
-				opList = inst.next[curOp];
-				random_shuffle(opList.begin(), opList.end());
-				for(unsigned n : opList) {
-					assert(indeg[n]>0);
-					indeg[n]--;
-					if(indeg[n] == 0) {
-						assert(qInsert<Q.size()-1);
-						Q[qInsert++] = n;
-					}
-				}
-			}
-			assert(qAccess == inst.jSize[j]);
-			assert( ! hasCycle(indeg, Q));
-		}
-		
-		//insert machines wthout making a cycle
-		for(unsigned m=0; m<inst.M; m++) mList[m] = m;
-		random_shuffle(mList.begin(), mList.end());
-		for(unsigned m : mList) {
-			opList =  inst.machOpers[m];
-			random_shuffle(opList.begin(), opList.end());
-			rootOp = 0;
-			
-			for(unsigned o : opList) {
-				assert(o != 0);
-				assert( ! hasCycle(indeg, Q));
-				assert(_mach[rootOp] == 0);
-				assert(_mach[o] == 0);
-
-				//insert o in first postion
-
-				mach[o] = rootOp;
-				if(rootOp != 0) _mach[rootOp] = o;
-
-				swapCount = 0;
-
-				//swap until no cycle
-				while(hasCycle(indeg, Q)) {
-					assert(mach[o] != 0); //must have a valid place
-					swap(o, mach[o]);
-					swapCount++;
-				}
-
-				if(swapCount == 0) rootOp = o;
-			}
-		}	   
-	}
-
-
 
 	//partial state has cycles?
 	bool hasCycle(vector<unsigned> & indeg, vector<unsigned> & Q) const {
@@ -549,212 +328,6 @@ public:
 		assert(qAccess<=inst.O-1);
 		return qAccess<inst.O-1;
 	}
-
-	//expects compete state
-	//@return: cycle?
-	bool findTopo(vector<unsigned> & topo, vector<unsigned> & indeg) {
-		assert(isAlloced());
-		assert(indeg.size() == inst.O);
-		assert(topo.size() == inst.O);
-
-		unsigned qInsert = 0;
-		unsigned qAccess = 0;
-
-		unsigned curOp;
-		unsigned newOp;
-
-		fill(indeg.begin(), indeg.end(), 0);
-
-		for(unsigned o=1; o<inst.O; o++) {
-			if(_job[o] != 0)
-				indeg[o]++;
-			if(_mach[o] != 0)
-				indeg[o]++;
-			if(indeg[o] == 0)
-				topo[qInsert++] = o;
-		}	
-
-		while(qAccess < qInsert) {
-			assert(qAccess<topo.size());
-			curOp = topo[qAccess++];
-			assert(indeg[curOp] == 0);
-
-			//job order
-			newOp = job[curOp];
-			if(newOp != 0) {
-				assert(indeg[newOp]>0);
-				indeg[newOp]--;
-				if(indeg[newOp] == 0) {
-					assert(qInsert<topo.size()-1);
-					topo[qInsert++] = newOp;
-				}
-			}
-			//mach order
-			newOp = mach[curOp];
-			if(newOp != 0) {
-				assert(indeg[newOp]>0);
-				indeg[newOp]--;
-				if(indeg[newOp] == 0) {
-					assert(qInsert<topo.size()-1);
-					topo[qInsert++] = newOp;
-				}
-			}
-		}
-		assert(qAccess<=inst.O-1);
-		return qAccess<inst.O-1;
-	}
-
-
-	//says if two opers from same item can reach one another -  ignores order of item but not precs - if not enforce then guaranteed obey order and do not form cycle;
-	//make an "enforce" for job and one for mach with dif sizes - type JOB then size is M (contrary)
-	//@enforce[x][y] => x->y  ---  x and y are not op index but the index of the machine or job
-	//@operPos: position in topological order of each operation of item
-	void mustEnforce(vector<vector<unsigned>> & enforce, vector<unsigned> & enfIndeg, unsigned type, unsigned index,  vector<unsigned> & indeg, vector<unsigned> & Q, vector<unsigned> & operPos, vector<bool> & reach) const {
-#ifndef NDEBUG
-		assert(enforce.size() == inst.O);
-		for(const vector<unsigned> & v : enforce) assert(v.capacity() == max(inst.J, inst.M));
-		assert(enfIndeg.size() == inst.O);
-		assert(indeg.size() == inst.O);
-		assert(Q.size() == inst.O);
-		assert(operPos.size() == inst.O);
-		assert(reach.size() == inst.O);
-#endif
-
-
-		unsigned qInsert = 0;
-		unsigned qAccess = 0;
-
-		unsigned curOp;
-		unsigned newOp;
-
-		unsigned maxPos = 0; //last position of an oper 
-
-		fill(indeg.begin(), indeg.end(), 0);
-		//reseting enforce and enfIndeg
-		for(unsigned o : (type==JOB ? inst.jobOpers[index] : inst.machOpers[index])) {
-			enforce[o].clear();
-			enfIndeg[o] = 0;
-		}
-
-		for(unsigned o=1; o<inst.O; o++) {
-			if(type!=JOB   ||    inst.operToJ[o]!=index) {
-				if(_job[o] != 0)
-					indeg[o]++;
-			} else {//type==JOB   &&    inst.operToJ[curOp]==index
-				indeg[o] += inst.prev[o].size();
-			}
-			if(_mach[o]!=0    &&   (type!=MACH    ||    inst.operToM[o]!=index))
-				indeg[o]++;
-			if(indeg[o] == 0)
-				Q[qInsert++] = o;
-		}
-
-		assert(qInsert>0);
-
-		//preparing topological order
-		while(qAccess < qInsert) {
-			assert(qAccess<Q.size());
-			curOp = Q[qAccess];
-			assert(indeg[curOp] == 0);
-
-			if(index   ==   (type==JOB ? inst.operToJ[curOp] : inst.operToM[curOp])) {
-				operPos[curOp] = qAccess;
-				maxPos = max(maxPos, qAccess);
-			}
-
-			qAccess++;
-
-			//from JOB
-			if(type!=JOB   ||    inst.operToJ[curOp]!=index) {
-				newOp = job[curOp];
-			    if(newOp != 0) {
-					assert(indeg[newOp] > 0);
-					indeg[newOp]--;
-					if(indeg[newOp] == 0) {
-						assert(qInsert<Q.size()-1);
-						Q[qInsert++] = newOp;
-					}
-				}
-			} else {//type==JOB   &&    inst.operToJ[curOp]==index
-				for(unsigned nOp : inst.next[curOp]) {
-					assert(indeg[nOp] > 0);
-					indeg[nOp]--;
-					if(indeg[nOp] == 0) {
-						assert(qInsert<Q.size()-1);
-						Q[qInsert++] = nOp;
-					}
-				}
-			}
-
-			//from MACH
-			newOp = mach[curOp];
-			if(newOp != 0    &&   (type!=MACH   ||    inst.operToM[curOp]!=index)) {
-				assert(indeg[newOp] > 0);
-				indeg[newOp]--;
-				if(indeg[newOp] == 0) {
-					assert(qInsert<Q.size()-1);
-					Q[qInsert++] = newOp;
-				}
-			}
-		}
-		assert(qAccess == inst.O-1);
-		//Here Q is a topological order, operPos has the positions of the item's opers, and maxPos is the biggest
-
-		//propagating forward from each element in item
-		for(unsigned fromOp : (type==JOB ? inst.jobOpers[index] : inst.machOpers[index])) {
-			assert(Q[operPos[fromOp]] == fromOp);			
-			fill(reach.begin(), reach.end(), false);
-			reach[fromOp] = true;
-			for(unsigned aPos=operPos[fromOp]; aPos<=maxPos; aPos++) {
-				curOp = Q[aPos];
-				if(reach[curOp]) {
-					if(index == (type==JOB ? inst.operToJ[curOp] : inst.operToM[curOp])) {
-						if(curOp != fromOp) {
-							enforce[fromOp].push_back(curOp);
-							enfIndeg[curOp]++;
-						}
-					}
-
-					//from JOB
-					if(type!=JOB   ||    inst.operToJ[curOp]!=index) {
-						newOp = job[curOp];
-						if(newOp != 0)
-							reach[newOp] = true;	
-					} else {//type==JOB   &&    inst.operToJ[curOp]==index
-						for(unsigned nOp : inst.next[curOp])
-							reach[nOp] = true;	
-					}
-
-					//from MACH
-					newOp = mach[curOp];
-					if(newOp != 0    &&   (type!=MACH   ||    inst.operToM[curOp]!=index)) {
-						reach[newOp] = true;
-					}
-				}
-			}
-		}
-	}
-	
-	
-
-
-
-
-	static void removeOperFromOrder(unsigned targOp, vector<unsigned> & next, vector<unsigned> & prev) {
-		assert(targOp!=0);
-
-		const unsigned prevOp = prev[targOp];
-		assert(prevOp==0   ||   next[prevOp] == targOp);
-		const unsigned postOp = next[targOp];
-		assert(postOp==0   ||   prev[postOp] == targOp);
-
-		next[targOp] = 0;
-		prev[targOp] = 0;
-		if(prevOp != 0) prev[prevOp] = postOp;
-		if(postOp != 0) prev[postOp] = prevOp;
-	}
-
-
 
 	void removeOper(unsigned targOp) {
 		assert(targOp!=0);
@@ -1525,6 +1098,18 @@ public:
 		}
 	}
 
+	static void fillCandidatesAllSwaps(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& mach) {
+
+		assert(mach.size() == inst.O);
+
+		for (unsigned currentOp = 1; currentOp < inst.O; ++currentOp) {
+
+			if (mach[currentOp]) {
+				cands.push_back(pair<unsigned, unsigned>(currentOp, mach[currentOp]));
+			}
+		}
+	}
+
 	static void findCriticOper(vector<vector<unsigned>>& critic, vector<unsigned>& starts, vector<unsigned> _job, vector<unsigned> _mach) {
 
 		for (unsigned i = 0; i < inst.O; ++i) {
@@ -1554,35 +1139,7 @@ public:
 		}
 	}
 
-
-
-
-	static void fillCandidatesTest1(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& mach) {
-
-		assert(mach.size() == inst.O);
-
-		for (unsigned currentOp = 1; currentOp < inst.O; ++currentOp) {
-
-			if (inst.operToJ[currentOp] != inst.operToJ[mach[currentOp]] && mach[currentOp]) {
-				cands.push_back(pair<unsigned, unsigned>(currentOp, mach[currentOp]));
-			}
-		}
-	}
-
-	static void fillCandidatesCritic(vector<pair<unsigned, unsigned>>& cands, vector<vector<unsigned>>& criticOper) {
-
-		assert(cands.capacity() == inst.O);
-
-		for (unsigned currentOp = 1; currentOp < inst.O; ++currentOp) {
-
-			if (criticOper[currentOp].size() > 0) {
-				cands.push_back(pair<unsigned, unsigned>(criticOper[currentOp][0], criticOper[currentOp][1]));
-				if (criticOper[currentOp].size() > 2) cands.push_back(pair<unsigned, unsigned>(criticOper[currentOp][criticOper[currentOp].size() - 1], criticOper[currentOp][criticOper[currentOp].size() - 2]));
-			}
-		}
-	}
-
-	static void fillCandidatesCritic2(vector<pair<unsigned, unsigned>>& cands, vector<vector<unsigned>>& criticOper) {
+	static void fillCandidatesCriticOper(vector<pair<unsigned, unsigned>>& cands, vector<vector<unsigned>>& criticOper) {
 
 		//set<pair<unsigned, unsigned>> candsAux;
 		
@@ -1654,125 +1211,6 @@ public:
 				if (cands[j].first == op1Aux && cands[j].second == op2Aux) {
 					cands.erase(cands.begin() + j);
 				}
-			}
-		}
-	}
-
-	static void fillCandidatesCriticTotal2(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& starts, vector<unsigned> _job, vector<unsigned> _mach, vector<unsigned>& prev) {
-
-		for (unsigned op = 1; op < inst.O; ++op) {
-
-			if (starts[op] + inst.P[op] > inst.deadlines[op]) {
-
-				unsigned auxOp = op;
-				vector<unsigned> opCritic;
-
-				opCritic.push_back(op);
-				while (_job[auxOp] != 0 || _mach[auxOp] != 0) {
-
-					while (prev[auxOp] && inst.operToM[auxOp] == inst.operToM[prev[auxOp]]) {
-						assert(_mach[auxOp] == prev[auxOp]);
-						opCritic.push_back(prev[auxOp]);
-						auxOp = prev[auxOp];
-					}
-					if (opCritic.size() > 1) {
-						cands.push_back(pair<unsigned, unsigned>(opCritic[1], opCritic[0]));
-						if (opCritic.size() > 2)cands.push_back(pair<unsigned, unsigned>(opCritic[opCritic.size() - 1], opCritic[opCritic.size() - 2]));
-					}
-					auxOp = _job[auxOp];
-					opCritic.clear();
-				}
-			}
-		}
-
-		unsigned op1Aux, op2Aux;
-		for (unsigned i = 0; i < cands.size(); ++i) {
-			op1Aux = cands[i].first;
-			op2Aux = cands[i].second;
-
-			for (unsigned j = i + 1; j < cands.size(); ++j) {
-				if (cands[j].first == op1Aux && cands[j].second == op2Aux) {
-					cands.erase(cands.begin() + j);
-				}
-			}
-		}
-	}
-
-	static void fillCandidatesTestA(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& mach, vector<unsigned>& startTime, vector<unsigned>& operPenalties) {
-
-		assert(mach.size() == inst.O);
-		assert(cands.capacity() == inst.O);
-
-		unsigned sumPenaltiesBefore;
-		unsigned sumPenaltiesAfter;
-
-		for (unsigned currentOp = 1; currentOp < inst.O; ++currentOp) {
-
-			sumPenaltiesBefore = operPenalties[currentOp] + operPenalties[mach[currentOp]];
-			sumPenaltiesAfter = (inst.deadlines[mach[currentOp]] > startTime[currentOp] + inst.P[mach[currentOp]] ? inst.deadlines[mach[currentOp]] - startTime[currentOp] + inst.P[mach[currentOp]] : startTime[currentOp] + inst.P[mach[currentOp]] - inst.deadlines[mach[currentOp]]) + (inst.deadlines[currentOp] > startTime[mach[currentOp]] + inst.P[mach[currentOp]] ? inst.deadlines[currentOp] - startTime[mach[currentOp]] + inst.P[mach[currentOp]] : startTime[mach[currentOp]] + inst.P[mach[currentOp]] - inst.deadlines[currentOp]);
-
-			if (!mach[currentOp]) {
-				continue;
-			}
-			else if ((startTime[currentOp] + inst.P[currentOp]) < inst.deadlines[currentOp] && (startTime[mach[currentOp]] + inst.P[mach[currentOp]]) > inst.deadlines[mach[currentOp]]) {
-				cands.push_back(pair<unsigned, unsigned>(currentOp, mach[currentOp]));
-			}
-			else if ((startTime[currentOp] + inst.P[currentOp]) > inst.deadlines[currentOp] && (startTime[mach[currentOp]] + inst.P[mach[currentOp]]) > inst.deadlines[mach[currentOp]] && sumPenaltiesAfter < sumPenaltiesBefore) {
-				cands.push_back(pair<unsigned, unsigned>(currentOp, mach[currentOp]));
-			}
-			else if ((startTime[currentOp] + inst.P[currentOp]) < inst.deadlines[currentOp] && (startTime[mach[currentOp]] + inst.P[mach[currentOp]]) < inst.deadlines[mach[currentOp]] && sumPenaltiesAfter < sumPenaltiesBefore) {
-				cands.push_back(pair<unsigned, unsigned>(currentOp, mach[currentOp]));
-			}
-		}
-	}
-
-	static void fillCandidatesTest2(vector<pair<unsigned, unsigned>> & cands, vector<unsigned> & mach, vector<unsigned> starts) {
-
-		assert(mach.size() == inst.O);
-		assert(cands.capacity() == inst.O);
-
-		for (unsigned currentOp = 1; currentOp < inst.O; ++currentOp) {
-			assert(inst.operToJ[currentOp] != inst.operToJ[mach[currentOp]]);
-			if (!mach[currentOp]) {
-				continue;
-			}
-			else if ((starts[currentOp] + inst.P[currentOp]) < inst.deadlines[currentOp] && (starts[mach[currentOp]] + inst.P[mach[currentOp]]) > inst.deadlines[mach[currentOp]]) {
-				cands.push_back(pair<unsigned, unsigned>(currentOp, mach[currentOp]));
-			}
-		}
-	}
-
-	static void fillCandidatesTest3(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& mach, vector<unsigned> starts) {
-
-		for (unsigned curOp = 1; curOp < inst.O; ++curOp) {
-			if (starts[curOp] + inst.P[curOp] >= inst.deadlines[curOp]) continue;
-
-			unsigned nextCurOp = mach[curOp];
-
-			while (nextCurOp != 0) {
-				assert(inst.operToJ[curOp] != inst.operToJ[nextCurOp]);
-
-				if (starts[nextCurOp] + inst.P[nextCurOp] > inst.deadlines[nextCurOp]) {
-					cands.push_back(pair<unsigned, unsigned>(curOp, nextCurOp));
-				}
-
-				nextCurOp = mach[nextCurOp];
-			}
-		}
-	}
-
-	static void fillCandidatesTest4(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& mach) {
-
-		for (unsigned curOp = 1; curOp < inst.O; ++curOp) {
-
-			unsigned nextCurOp = mach[curOp];
-
-			while (nextCurOp != 0) {
-				assert(inst.operToJ[curOp] != inst.operToJ[nextCurOp]);
-
-				cands.push_back(pair<unsigned, unsigned>(curOp, nextCurOp));
-
-				nextCurOp = mach[nextCurOp];
 			}
 		}
 	}
@@ -1876,35 +1314,6 @@ public:
 		assert( ! cand.empty());
 		assert(cand.size() < inst.O);
 	}
-
-
-
-	//@type: shared element: MACH or JOB
-	//@bailiff and provost: static and moving ops
-	//@return: guarateed not to create cycle?
-
-
-	//Luv(0, *) = max {Luv(0,w) + Luv(w, *)  :  w in Q} - Q is {u,...., V}
-	//
-/*	unsigned guidepost(const vector<unsigned> & heads, const vector<unsigned> & tails) const {
-
-
-	}
-	*/
-	
-	
-
-	//Balas Vazacopoulos 1998
-	//cand: type - direction - bailiff - provost
-	
-
-	//Zhang 2007
-	//cand: direction - bailiff - provost
-	///XXX CHECK WHEN CANDS REPEAT -
-	// -- instance block ize two all the same
-	// -- other situations???
-	//TODO SPECIAL CASES WHERE SIZE IS 2 or 3 WLL REPEAT CANDIDATES (FORTH AND BACK IN ADJ ARE SAME)
-
 
 	//N5 neighbourhood first improvement - randomizes
 	void localSearch( vector<unsigned> & dists, vector<unsigned> & prev, vector<unsigned> & indeg, vector<unsigned> & Q, vector<unsigned> & jobBb, vector<unsigned> & machBb, vector<pair<unsigned, unsigned>> & cands, vector<unsigned> & critic, unsigned lowerBound) {
@@ -2232,164 +1641,6 @@ public:
 //		return qAccess<inst.O-1;
 //	}
 
-	//computes the new makes after swap, expects dists the be the value before the swap and the swap to be performed in DG
-	unsigned swapMakes(const vector<unsigned> & dists, vector<unsigned> & dirtyDists, vector<bool> & dirty, unsigned o1, unsigned o2) const {
-		assert(isAlloced());
-		assert(dists.size() == inst.O);
-		assert(dirty.size() == inst.O);
-		assert((mach[o2] == o1 && _mach[o1] == o2)    ||    (job[o2] == o1 && _job[o1] == o2));
-
-		unsigned curOp;
-
-		queue<unsigned> Q;
-
-		unsigned newDist;
-
-		bool updated;
-
-		unsigned distFromJ;
-		unsigned distFromM;
-
-		//XXX
-		//cout << "\n\no1: " << o1 << "  ;  o2: " << o2 << endl;
-		//cout << "start dists: ";
-		//for(unsigned o=1; o<inst.O; o++)
-		//	 cout << o << ":" << dists[o] << "[" << inst.P[o] << "]   ";
-		//cout << endl;
-		//XXX
-
-		fill(dirty.begin(), dirty.end(), false);
-
-		//calculating new dist for  o2
-		if(_job[o2] != 0)
-			distFromJ = dists[_job[o2]]+inst.P[_job[o2]];
-		else
-			distFromJ = 0;
-		if(_mach[o2] != 0)
-			distFromM = dists[_mach[o2]]+inst.P[_mach[o2]];
-		else
-			distFromM = 0;
-		newDist = max(distFromJ, distFromM);
-		updated = false;
-		//update o2
-		if(newDist != dists[o2]) {
-			dirtyDists[o2] = newDist;
-			dirty[o2] = true;
-		}
-		//update o1 
-		if( ! updated) {
-			//calculating new dist for  o1
-			if(_job[o1] != 0)
-				distFromJ =  (dirty[_job[o1]] ? dirtyDists[_job[o1]] : dists[_job[o1]])+inst.P[_job[o1]];
-			else
-				distFromJ = 0;
-			if(_mach[o1] != 0)
-				distFromM =   (dirty[_mach[o1]] ? dirtyDists[_mach[o1]] : dists[_mach[o1]])+inst.P[_mach[o1]];
-			else
-				distFromM = 0;
-			newDist = max(distFromJ, distFromM);
-			//update o1
-			if(newDist != dists[o1]) {
-				dirtyDists[o1] = newDist;
-				dirty[o1] = true;
-			}
-		}
-
-		//inserting possible propagations of change
-		if(job[o2] != 0   &&   job[o2] != o1)
-			Q.push(job[o2]);
-		if(mach[o2] != 0    &&   mach[o2] != o1)
-			Q.push(mach[o2]);
-		if(job[o1] != 0)
-			Q.push(job[o1]);
-		if(mach[o1] != 0)
-			Q.push(mach[o1]);
-
-		 
-
-		while( ! Q.empty()) {
-			assert(Q.size() < (inst.O*inst.O));
-			curOp = Q.front();
-			Q.pop();
-			updated = false;
-
-			//Computing dist for curOp
-			if(_job[curOp] != 0)
-				distFromJ = (dirty[_job[curOp]] ? dirtyDists[_job[curOp]] : dists[_job[curOp]])+inst.P[_job[curOp]];
-			else
-				distFromJ = 0;
-			if(_mach[curOp] != 0)
-				distFromM = (dirty[_mach[curOp]] ? dirtyDists[_mach[curOp]] : dists[_mach[curOp]])+inst.P[_mach[curOp]];
-			else
-				distFromM = 0;
-			newDist = max(distFromJ, distFromM);
-
-			//cout << "\t\tdistFromJ: " << distFromJ << "  ;  distFromM: " << distFromM <<"  ;  newDist: " << newDist << endl; 
-
-
-			//is curOp dirty?
-			if(! dirty[curOp]) {
-				if(newDist != dists[curOp]) {
-					dirtyDists[curOp] = newDist;
-					dirty[curOp] = true;
-					updated = true;
-				}
-			} else {
-				if(newDist != dirtyDists[curOp]) {
-					dirtyDists[curOp] = newDist;
-					updated = true;
-				}
-			}
-			 
-
-			if(updated) {
-				if(job[curOp] != 0)
-					Q.push(job[curOp]);
-				if(mach[curOp] != 0)
-					Q.push(mach[curOp]);
-			}
-		}
-			 
-		//update makes from leafs
-		for(unsigned l : inst.leafs)
-			newDist = max(newDist, (dirty[l] ? dirtyDists[l]+inst.P[l] : dists[l]+inst.P[l]));
-
-		// cout << "FINISHE DELTA SWAP" << endl;
-		 
-#ifndef NDEBUG
-		State dummyState = *this;
-		vector<unsigned> dummyDists(inst.O);
-		unsigned lastOp;
-		vector<unsigned> prev(inst.O);
-		vector<unsigned> indeg(inst.O);
-		vector<unsigned> dummyQ(inst.O);
-		bool dummyCycle = dummyState.setMeta(dummyDists, lastOp, prev, indeg, dummyQ);
-		assert( ! dummyCycle);
-		//XXX
-		if(newDist != dummyState.makes) {
-			cout << "newDist: " << newDist << "  ;  dummyState.makes: " << dummyState.makes << endl;
-			cout << easyString() << endl;
-			cout << "basic: ";
-			for(unsigned o=1; o<inst.O; o++)
-				cout << o << ":" << dummyDists[o] << "[" << inst.P[o] << "]   ";
-			cout << endl;
-			cout << "delta: ";
-			for(unsigned o=1; o<inst.O; o++)
-				cout << o << ":" << (dirty[o] ? dirtyDists[o] : dists[o]) << "[" << inst.P[o] << "]   ";
-			cout << endl;
-		}
-		//XXX
-		assert(newDist == dummyState.makes);
-#endif
-
-		//cout << "FINISHED ASSERTING" << endl;
-
-		return newDist;
-	}
-
-
-
-
 		//@return: starts
 	vector<unsigned> genSchedule()  {
 
@@ -2408,8 +1659,6 @@ public:
 		return starts;
 	}
 
-
-
 	bool verifySchedule() {
 
 		unsigned testMakes = makes;//genSchedule may change makes - store here to be sure
@@ -2427,9 +1676,6 @@ public:
 
 		inst.printPenalties(schedule,makes);		
 	}
-
-	
-
 
 #ifndef NDEBUG
 		bool isAlloced() const {
