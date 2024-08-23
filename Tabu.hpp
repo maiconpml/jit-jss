@@ -522,9 +522,9 @@ namespace Tabu {
 					//State::fillCandidatesCritic2(cands, criticOper);
 					State::fillCandidatesCriticTotal(cands,curState.startTime, curState._job, curState._mach);
 				}
-#ifdef NEIGHBOURS_NB
+#ifdef PRINT_NEIGHBOURS_NB
 				neigh.push_back(cands.size());
-#endif // NEIGHBOURS_NB
+#endif // PRINT_NEIGHBOURS_NB
 			}
 			assert( ! cands.empty());
 
@@ -626,7 +626,7 @@ namespace Tabu {
 #ifdef PRINT_ONLY_IS
 
 		cout << instPath << " " << lowerBound << " ";
-		theState.printPenaltys();
+		theState.printPenalties();
 		return;
 #endif //PRINT_ONLY_IS
 
@@ -637,10 +637,10 @@ namespace Tabu {
 		if( ! theState.verifySchedule())
 			throw errorText(theState.toString() + "\n\t\tBad schedule !!!!!","","");
 
-#ifndef PRINT_ONLY_RESULT
+#ifdef PRINT_DEFAULT
 		cout << instPath << " " << lowerBound << " ";
 #endif //PRINT_ONLY_RESULT
-		theState.printPenaltys();
+		theState.printPenalties();
 	}
 }
 

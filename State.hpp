@@ -13,7 +13,6 @@
 #include "Settings.hpp"
 #include "Utilities.hpp"
 #include "Instance.hpp"
-#include "RandomNumberGenerator.hpp"
 
 using namespace boost;
 
@@ -2419,14 +2418,14 @@ public:
 		return inst.verifySchedule(schedule, testMakes);
 	}
 
-	void printPenaltys(){
+	void printPenalties(){
 
 		vector<unsigned> schedule = genSchedule();
-#ifndef PRINT_ONLY_RESULT
+#ifdef PRINT_DEFAULT
 		cout << makes << " ";
 #endif //PRINT_ONLY_RESULT
 
-		inst.printPenaltys(schedule,makes);		
+		inst.printPenalties(schedule,makes);		
 	}
 
 	
