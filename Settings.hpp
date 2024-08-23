@@ -5,7 +5,6 @@
 #pragma once
 
 //#define NDEBUG
-//#define RFILE
 using namespace std;
 
 #include <assert.h>
@@ -22,24 +21,17 @@ unsigned currentShownSeconds;
 #define UINFTY UINT_MAX
 #define ANALYZE_MODE
 
-//#define PRINT_ONLY_RESULT
-//#define PRINT_SCHEDULE
-//#define PRINT_ONLY_IS
-#define NEIGHBOURS_NB 
-
-#define SHIFT_OPERS
-
-//#define REOPT_GAPS
-
-
-//#define PARALLEL_MACHS
-//#define VAR_PARALLEL_MACHS
-//#define EXTRA_DECODE
+//#define RFILE													//print schedule in format wich is used to create gantt chart
+//#define PRINT_ONLY_RESULT							//print only the penalties result
+//#define PRINT_SCHEDULE								//print a detailed representaton of the schedule
+//#define PRINT_ONLY_IS									//print only the initial solution
+//#define PRINT_NEIGHBOURS_NB							//print the mean of the number of neighbours
+//#define PRINT_DEFAULT										//print the result in the format: instance-path makes-lower-bound obtained-makes penalties earliness-penalties tardiness-penalties neighbours-number(if exists)
+#define PRINT_VERIFY_OUTPUT
+#define SHIFT_OPERS											
 
 //only one of this 3
 #define VANILLA_PSS
-//#define EXTENDED_JSS
-//#define EXTENDED_PSS
 
 // ALIASES
 #define UNDEFINED 11
@@ -76,27 +68,8 @@ unsigned currentShownSeconds;
 #define METROPOLIS 4001
 #define BEST_JUMP 4002
 
-//Parallel neighbouhood options
-#define CRIT_VANILLA_PARALLEL_NEIGH 5001
-#define ALL_DELAY_PARALLEL_NEIGH 5002
-
-#define SMALLER_GAP 6001
-#define LARGER_GAP 6002
-
-#define PARALLEL_INSA_START 7001
-#define PARALLEL_JOB_TAIL_START 7002
-
-
 vector<string> resultList;
 
-#ifdef NEIGHBOURS_NB
+#ifdef PRINT_NEIGHBOURS_NB
 	vector<double> neigh;
-#endif // NEIGHBOURS_NB
-
-//#define HALF_MAKES
-
-// #define PRINT_SCHEDULE "./schedules.txt"
-
-double sumKW = 0.0;
-unsigned iterKW = 0;
-double at30KW = 0.0;
+#endif // PRINT_NEIGHBOURS_NB

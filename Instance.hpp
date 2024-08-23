@@ -13,7 +13,6 @@
 #include "Settings.hpp"
 #include "italiano.hpp"
 #include "Utilities.hpp"
-#include "RandomNumberGenerator.hpp"
 
 using namespace boost;
 
@@ -515,32 +514,18 @@ public:
 		return true;
 	}
 
-	void iToR2(const vector<unsigned>& starts) {
+	// Generate format file to be consumed by r library to generate gantt chart
+	void generateGantt(const vector<unsigned>& starts) {
 
-		cout << "machine task timeStart timeEnd";
+		cout << "machines tasks timeStarts timeEnds penaltie\n";
 
 		for (unsigned i = 1; i < O; ++i) {
-			cout << operToM[i] << " " << operToJ[i] << " " << starts[i] << " " << starts[i] + P[i] << endl;
+			cout << operToM[i] << " " << operToJ[i] << " " << starts[i] << " " << starts[i] + P[i] << " ";
+			if (starts[i] + P[i] < deadlines[i]) cout << "1";
+			else if (starts[i] + P[i] > deadlines[i]) cout << "2";
+			else cout << "0";
+			cout << endl;
 		}
-	}
-
-	void iToR(const vector<unsigned> & starts) const{
-    cout << "library(candela)" << endl;
-    cout << "data <- list(" << endl;
-    for(unsigned m = 0; m < M; m++){
-        
-			for(unsigned j = 0; j < J;j++){
-				int i  = jmToIndex[j][m];
-    	  cout<<"  list(label = 'task "<< j <<"',name='machine " << m <<"', level=" <<m<<", start="<< starts[i]<<", end="<< starts[i] +  P[i]<<")";
-     	  if( m +1 != M || j+1 != J) cout <<",";
-     	  cout << endl;
-     	}
-   	}
-    cout <<")" << endl;
-    cout << "candela('GanttChart'," << endl;
-    cout << "    data=data, label='name', " << endl;
-    cout << "    start='start', end='end', level='level', " << endl;
-    cout << "    width=" <<J*100 <<", height="<< M * 100<<")" << endl;
 	}
 
 	void calcPenalties(const vector<unsigned> & starts, double&  ePenalty, double& lPenalty, vector<double>& operPenalties){
@@ -550,7 +535,6 @@ public:
 		int curStart;
 		double curTardiness;
 		double curEarliness;
-		//this->iToR(starts);
 
 		operPenalties.resize(O, 0);
 
@@ -570,18 +554,35 @@ public:
 		}
 	}
 
-	void printPenaltys(const vector<unsigned> & starts, const unsigned & makes){
+	void printOutForTest(const vector<unsigned> & starts){
+		cout << M <<" "<< J <<endl;
+		for(int a = 0; a < J; a++){
+			for(int b = 0; b<M;b++){
+				int o = -1;
+				unsigned auxI = jmToIndex[a][b];
+				for(int i=0; i<M; i++){
+					if(jobOpers[a][i]== auxI){
+						o = i;
+						break;
+					}
+			}
+				cout << b << " " << a << " " << P[auxI] << " " << starts[auxI] << " " << o<< endl;
+			}
+		}
+	}
+
+	void printPenalties(const vector<unsigned> & starts, const unsigned & makes){
 		
-		double sumTardPenaltys = 0;
-		double sumEarlPenaltys = 0;
-		double sumPenaltys = 0;
+		double sumTardPenalties = 0;
+		double sumEarlPenalties = 0;
+		double sumPenalties = 0;
 		int curDueDate;
 		int curStart;
 		double curTardiness;
 		double curEarliness;
 
 #ifdef RFILE
-		iToR2(starts);
+		generateGantt(starts);
 		return;
 #endif //RFILE
 
@@ -596,11 +597,11 @@ public:
 			assert(curEarliness >= 0);
 			assert(curTardiness >= 0);
 
-			sumEarlPenaltys += curEarliness*earlPenalties[o];
-			sumTardPenaltys += curTardiness*tardPenalties[o];
+			sumEarlPenalties += curEarliness*earlPenalties[o];
+			sumTardPenalties += curTardiness*tardPenalties[o];
 		}
 
-		sumPenaltys = sumEarlPenaltys + sumTardPenaltys;
+		sumPenalties = sumEarlPenalties + sumTardPenalties;
 
 #ifdef PRINT_SCHEDULE
 
@@ -622,15 +623,15 @@ public:
 		return;
 #endif //PRINT_SCHEDULE
 
-#ifndef PRINT_ONLY_RESULT
-		cout << sumPenaltys << " " << sumEarlPenaltys << " " << sumTardPenaltys << " ";
+#ifdef PRINT_DEFAULT
+		cout << sumPenalties << " " << sumEarlPenalties << " " << sumTardPenalties << " ";
 #endif //PRINT_ONLY_RESULT
 #ifdef PRINT_ONLY_RESULT
-		cout << sumPenaltys;
+		cout << sumPenalties;
 #endif // PRINT_ONLY_RESULT
 
 
-#ifdef NEIGHBOURS_NB
+#ifdef PRINT_NEIGHBOURS_NB
 		double mean = 0;
 		for (double n : neigh) {
 			mean += n;
@@ -639,9 +640,14 @@ public:
 			mean = mean / neigh.size();
 		}
 		cout << mean << " ";
-#endif // NEIGHBOURS_NB
+#endif // PRINT_NEIGHBOURS_NB
 
-		cout << endl;
+		
+#ifdef PRINT_VERIFY_OUTPUT 
+		printOutForTest(starts);
+
+#endif
+	cout << endl;
 	}
 
 
@@ -667,7 +673,6 @@ public:
 		deadlines.clear();
 		earlPenalties.clear();
 		tardPenalties.clear();
-		
 		string bufferStr;
 		double bufferT;
 		vector<pair<unsigned, unsigned>> order;
@@ -850,7 +855,7 @@ public:
 #ifdef VANILLA_PSS
 	multi_array<unsigned,2> jmToIndex; //jmToIndex[j][m] = o -- may be dummy if doesnt exist
 #endif //VANILLA_PSS
-	
+
 
 };
 Inst inst;
