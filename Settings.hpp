@@ -26,8 +26,8 @@ unsigned currentShownSeconds;
 //#define PRINT_SCHEDULE								//print a detailed representaton of the schedule
 //#define PRINT_ONLY_IS									//print only the initial solution
 //#define PRINT_NEIGHBOURS_NB							//print the mean of the number of neighbours
-//#define PRINT_DEFAULT										//print the result in the format: instance-path makes-lower-bound obtained-makes penalties earliness-penalties tardiness-penalties neighbours-number(if exists)
-#define PRINT_VERIFY_OUTPUT
+#define PRINT_DEFAULT										//print the result in the format: instance-path makes-lower-bound obtained-makes penalties earliness-penalties tardiness-penalties neighbours-number(if exists)
+//#define PRINT_VERIFY_OUTPUT
 #define SHIFT_OPERS											
 
 //only one of this 3
