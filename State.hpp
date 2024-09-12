@@ -1318,54 +1318,54 @@ public:
 	}
 
 	//N5 neighbourhood first improvement - randomizes
-	void localSearch( vector<unsigned> & dists, vector<unsigned> & prev, vector<unsigned> & indeg, vector<unsigned> & Q, vector<unsigned> & jobBb, vector<unsigned> & machBb, vector<pair<unsigned, unsigned>> & cands, vector<unsigned> & critic, unsigned lowerBound) {
-#ifndef NDEBUG
-		bool cycle;
-		assert(dists.size() == inst.O);
-		assert(prev.size() == inst.O);
-		assert(prev.size() == inst.O);
-		assert(Q.size() == inst.O);
-		assert(cands.capacity() == inst.O);
-		assert(critic.capacity() == inst.O);
-		assert(jobBb.capacity() == inst.O);
-		assert(machBb.capacity() == inst.O);
-#endif
-		unsigned lastOp;
-		unsigned thisMakes;
-
-		setMeta(dists, lastOp, prev, indeg, Q);
-
-		while(true) {
-			assert(makes >= lowerBound);
-			if(makes == lowerBound)
-				break;
-			thisMakes = makes;
-			computeCritic(critic, lastOp, prev);
-			assert( ! critic.empty());
-			assert(critic.size() < inst.O);
-			fillCandidatesN5(cands, jobBb, machBb, critic);
-			random_shuffle(cands.begin(), cands.end());
-
-			for(const pair<unsigned, unsigned> & p : cands) {
-				swap(p.first, p.second);
-#ifndef NDEBUG
-				cycle = 
-#endif
-					setMeta(dists, lastOp, prev, indeg, Q);
-				assert( ! cycle);
-
-				if(thisMakes > makes) {
-					break; //first improvement
-				} else {
-					swap(p.second, p.first); //undoing swap
-				}
-			}
-			if(thisMakes <= makes)
-				break;
-		}
-		setMeta(dists, lastOp, prev, indeg, Q);
-		assert(makes == thisMakes);
-	}
+//	void localSearch( vector<unsigned> & dists, vector<unsigned> & prev, vector<unsigned> & indeg, vector<unsigned> & Q, vector<unsigned> & jobBb, vector<unsigned> & machBb, vector<pair<unsigned, unsigned>> & cands, vector<unsigned> & critic, unsigned lowerBound) {
+//#ifndef NDEBUG
+//		bool cycle;
+//		assert(dists.size() == inst.O);
+//		assert(prev.size() == inst.O);
+//		assert(prev.size() == inst.O);
+//		assert(Q.size() == inst.O);
+//		assert(cands.capacity() == inst.O);
+//		assert(critic.capacity() == inst.O);
+//		assert(jobBb.capacity() == inst.O);
+//		assert(machBb.capacity() == inst.O);
+//#endif
+//		unsigned lastOp;
+//		unsigned thisMakes;
+//
+//		setMeta(dists, lastOp, prev, indeg, Q);
+//
+//		while(true) {
+//			assert(makes >= lowerBound);
+//			if(makes == lowerBound)
+//				break;
+//			thisMakes = makes;
+//			computeCritic(critic, lastOp, prev);
+//			assert( ! critic.empty());
+//			assert(critic.size() < inst.O);
+//			fillCandidatesN5(cands, jobBb, machBb, critic);
+//			random_shuffle(cands.begin(), cands.end());
+//
+//			for(const pair<unsigned, unsigned> & p : cands) {
+//				swap(p.first, p.second);
+//#ifndef NDEBUG
+//				cycle = 
+//#endif
+//					setMeta(dists, lastOp, prev, indeg, Q);
+//				assert( ! cycle);
+//
+//				if(thisMakes > makes) {
+//					break; //first improvement
+//				} else {
+//					swap(p.second, p.first); //undoing swap
+//				}
+//			}
+//			if(thisMakes <= makes)
+//				break;
+//		}
+//		setMeta(dists, lastOp, prev, indeg, Q);
+//		assert(makes == thisMakes);
+//	}
 
 
 
