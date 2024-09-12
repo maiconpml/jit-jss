@@ -9,6 +9,8 @@
 #include <chrono>
 #include <set>
 #include <queue>
+#include <ilcplex/cplex.h>
+#include <ilcplex/ilocplex.h>
 
 #include "Settings.hpp"
 #include "Utilities.hpp"
@@ -1450,8 +1452,84 @@ public:
 		starts = newStarts;
 	}
 
+	/* Schedule operations*/
+	void schedulerCplex(vector<unsigned>& dists) {
+
+		vector<unsigned> auxJobs = inst.roots;
+		vector<vector<unsigned>> machOrder(inst.M, vector<unsigned>(0));
+
+		dists.clear();
+		dists.push_back(0);
+
+		IloEnv jitEnv;
+		IloModel jitModel(jitEnv);
+
+		IloNumVarArray completionTimes(jitEnv, inst.O - 1, 0, IloInfinity, ILOINT);
+		try {
+			IloExpr objExpr(jitEnv);
+			for (unsigned i = 1; i < inst.O; ++i) {
+				/* Objective*/
+				objExpr += (IloMax(inst.deadlines[i] - completionTimes[i - 1], 0) * inst.earlPenalties[i]) + (IloMax(completionTimes[i - 1] - inst.deadlines[i], 0) * inst.tardPenalties[i]);
+
+				/* Start time of a job's first operation must be greater than zero*/
+				if(!_job[i]) jitModel.add(completionTimes[i - 1] - inst.P[i] >= 0);
+
+				/* Machine precedence constraints*/
+				if (mach[i]) {
+					jitModel.add(completionTimes[i - 1] <= completionTimes[mach[i] - 1] - inst.P[mach[i]]);
+				}
+
+				/* Job precedence constraints*/
+				if (job[i]) {
+					jitModel.add(completionTimes[i - 1] <= completionTimes[job[i] - 1] - inst.P[job[i]]);
+				}
+
+				/* Penalties constraints*/
+				jitModel.add(IloMax(inst.deadlines[i] - completionTimes[i - 1], 0) >= inst.deadlines[i] - completionTimes[i - 1]);
+				jitModel.add(IloMax(completionTimes[i - 1] - inst.deadlines[i], 0) >= completionTimes[i - 1] - inst.deadlines[i]);
+				jitModel.add(IloMax(inst.deadlines[i] - completionTimes[i - 1], 0) >= 0);
+				jitModel.add(IloMax(completionTimes[i - 1] - inst.deadlines[i], 0) >= 0);
+			}
+
+			jitModel.add(IloMinimize(jitEnv, objExpr));
+
+			IloCplex jitCplex(jitEnv);
+			jitCplex.setOut(jitEnv.getNullStream());
+
+			jitCplex.extract(jitModel);
+			jitCplex.solve();
+
+			for (unsigned i = 1; i < inst.O; ++i) {
+				dists.push_back(round(jitCplex.getValue(completionTimes[i - 1])) - inst.P[i]);
+			}
+
+			penalties = jitCplex.getObjValue();
+		}
+		catch (IloException& ex) {
+			cerr << "Error: " << ex << endl;
+		}
+		catch (...) {
+			cerr << "Error" << endl;
+		}
+
+		jitEnv.end();
+
+		/* Adjust new makes*/
+		makes = 0;
+		for (unsigned i = 1; i < inst.O; ++i) {
+			if (makes < dists[i] + inst.P[i]) {
+				makes = dists[i] + inst.P[i];
+			}
+		}
+
+		/* Calculate penalties*/
+		inst.calcPenalties(dists, ePenalty, lPenalty, operPenalties);
+		penalties = ePenalty + lPenalty;
+		startTime = dists;
+	}
+
 	//set makes with shift to minimize earliness penalties
-	bool setMeta(vector<unsigned>& dists, unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q) {
+	bool setMeta(vector<unsigned>& dists, unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q, bool cplex) {
 		assert(isAlloced());
 		assert(dists.size() == inst.O);
 		assert(prev.size() == inst.O);
@@ -1543,6 +1621,9 @@ public:
 			penalties = ePenalty + lPenalty;
 			startTime = dists;
 
+			if (cplex) {
+				schedulerCplex(dists);
+			}
 #ifdef SHIFT_OPERS
 			assert(penalties <= testPenalties);
 #endif //SHIFT_OPERS
@@ -1642,7 +1723,7 @@ public:
 //	}
 
 		//@return: starts
-	vector<unsigned> genSchedule()  {
+	vector<unsigned> genSchedule(bool cplex)  {
 
 		vector<unsigned> indeg(inst.O, 0);
 		vector<unsigned> Q(inst.O, 0);
@@ -1653,23 +1734,23 @@ public:
 #ifndef NDEBUG
 		bool cycle = 
 #endif
-			setMeta(starts, lastOp, prev, indeg, Q);
+			setMeta(starts, lastOp, prev, indeg, Q, cplex);
 		assert(! cycle);
 
 		return starts;
 	}
 
-	bool verifySchedule() {
+	bool verifySchedule(bool cplex) {
 
 		unsigned testMakes = makes;//genSchedule may change makes - store here to be sure
-		vector<unsigned> schedule = genSchedule();
+		vector<unsigned> schedule = genSchedule(cplex);
 
 		return inst.verifySchedule(schedule, testMakes);
 	}
 
 	void printPenalties(){
 
-		vector<unsigned> schedule = genSchedule();
+		vector<unsigned> schedule = genSchedule(true);
 #ifdef PRINT_DEFAULT
 		cout << makes << " ";
 #endif //PRINT_ONLY_RESULT
