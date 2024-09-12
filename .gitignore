@@ -12,7 +12,6 @@ insts/MSP/MixedLiu/Reproduce/CMakeFiles/
 insts/MSP/MixedLiu/Reproduce/testerMain
 .vs
 out/
-cmake
 build
 release
 debug

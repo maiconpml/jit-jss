@@ -556,11 +556,11 @@ public:
 
 	void printOutForTest(const vector<unsigned> & starts){
 		cout << M <<" "<< J <<endl;
-		for(int a = 0; a < J; a++){
-			for(int b = 0; b<M;b++){
+		for(unsigned a = 0; a < J; a++){
+			for(unsigned b = 0; b<M;b++){
 				int o = -1;
 				unsigned auxI = jmToIndex[a][b];
-				for(int i=0; i<M; i++){
+				for(unsigned i=0; i<M; i++){
 					if(jobOpers[a][i]== auxI){
 						o = i;
 						break;

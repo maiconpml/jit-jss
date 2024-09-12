@@ -238,7 +238,7 @@ public:
 
 namespace Tabu {
 
-	void nsp(State & theState, unsigned & lastOp, TabuList & tabuList, vector<pair<unsigned,unsigned>> & cands, double aspiration, vector<unsigned> & dists, vector<unsigned> & prev, vector<unsigned> & indeg, vector<unsigned> & Q, vector<unsigned> & heads, vector<unsigned> & tails, bool lbOrder) {
+	void nsp(State & theState, unsigned & lastOp, TabuList & tabuList, vector<pair<unsigned,unsigned>> & cands, double aspiration, vector<unsigned> & dists, vector<unsigned> & prev, vector<unsigned> & indeg, vector<unsigned> & Q, vector<unsigned> & heads, vector<unsigned> & tails, bool lbOrder, bool cplex) {
 #ifndef NDEBUG
 		assert( ! cands.empty());
 		assert(dists.size() == inst.O);
@@ -308,7 +308,7 @@ namespace Tabu {
 				theState.swap(o1, o2);
 				assert(theState.verify());
 
-				cycle = theState.setMeta(dists, lastOp, prev, indeg, Q);
+				cycle = theState.setMeta(dists, lastOp, prev, indeg, Q, cplex);
 				//assert( ! cycle);
 
 
@@ -346,7 +346,7 @@ namespace Tabu {
 				theState.swap(o1, o2);
 				assert(theState.verify());
 
-				cycle = theState.setMeta(dists, lastOp, prev, indeg, Q);
+				cycle = theState.setMeta(dists, lastOp, prev, indeg, Q, cplex);
 				//assert( ! cycle);
 
 				//aspiration
@@ -395,7 +395,7 @@ namespace Tabu {
 #ifndef NDEBUG
 		cycle = 
 #endif
-			theState.setMeta(dists, lastOp, prev, indeg, Q);
+			theState.setMeta(dists, lastOp, prev, indeg, Q, cplex);
 		assert( ! cycle);
 	}
 
@@ -409,7 +409,7 @@ namespace Tabu {
 #ifndef NDEBUG
 		cycle = 
 #endif
-		theState.setMeta(dists, lastOp, prev, indeg, Q);
+		theState.setMeta(dists, lastOp, prev, indeg, Q, true);
 		assert( ! cycle);
 		assert(theState.penalties >= lowerBound);
 
@@ -458,11 +458,11 @@ namespace Tabu {
 		TabuList tabuList(tenure);
 		//unsigned lowerBound = inst.lowerBoundTkz(indeg, Q);
 		JumpList jumpList(bjSize);
+		bool cplex = false;
 
 		// 2 main loop
 		while(maxMillisecs > duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count()) {
 			tabuIter++;
-
 			noImproveIters++;
 
 			//STEP Checking for cycles
@@ -510,11 +510,19 @@ namespace Tabu {
 ////					assert(curState.job[critic[pos]] == critic[pos+1]    ||    curState.mach[critic[pos]] == critic[pos+1]);
 ////#endif
 //				State::fillCandidatesN5(cands, jobBb, machBb, critic);
-
+				 
 				//State::fillCandidatesAllSwaps(cands, curState.mach);
-				if(trySwapNeigh == 1 || !curState.lPenalty){
+				
+				if(trySwapNeigh == 1){
 					State::fillCandidatesAllSwaps(cands, curState.mach);
-				} 
+				}
+				else if (curState.lPenalty <= theState.penalties / 4) {
+					vector<unsigned> earlBlock;
+					curState.getEarlBlock(earlBlock);
+					curState.schedulerCplexRelax(earlBlock);
+					cplex = true;
+					State::fillCandidatesCriticTotal(cands, curState.startTime, curState._job, curState._mach);
+				}
 				else{
 					//State::findCriticOper(criticOper, curState.startTime, curState._job, curState._mach);
 					//State::fillCandidatesCriticOper(cands, criticOper);
@@ -543,7 +551,7 @@ namespace Tabu {
 
 			//STEP Go to neighbour			
 			if( ! cands.empty())
- 				nsp(curState, lastOp, tabuList, cands, theState.penalties, dists, prev, indeg, Q, heads, tails, lbOrder);
+ 				nsp(curState, lastOp, tabuList, cands, theState.penalties, dists, prev, indeg, Q, heads, tails, lbOrder, cplex);
 			else
 				emptyNeighbourhood = true;
 
@@ -581,9 +589,11 @@ namespace Tabu {
 				curState.millisecsFound=duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count();
 			}
 			else {
-				if (trySwapNeigh) trySwapNeigh = 0;
-				else trySwapNeigh = 1;
+				if (trySwapNeigh == 1) trySwapNeigh = 0;
+				else trySwapNeigh += 1;
 			}
+
+			if (cplex) cplex = false;
 		}//end while
 
 		assert(maxMillisecs <= duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count());
@@ -619,7 +629,7 @@ namespace Tabu {
 			throw errorText("Invalid start option.", "Tabu.hpp","nosmuTabu");
 
 		unsigned lastOp;
-		theState.setMeta(dists, lastOp, prev, indeg, Q);
+		theState.setMeta(dists, lastOp, prev, indeg, Q, true);
 
 #ifdef PRINT_ONLY_IS
 
@@ -632,7 +642,9 @@ namespace Tabu {
 
 		evolveTabu(theState, tenure, initialjumpLimit, jumpLimitDecrease, bjSize, tpStart, dists, prev, indeg, Q, maxD, maxC, 0, maxMillisecs, UINT_MAX, "", heads, tails, timeLog, false);
 		
-		if( ! theState.verifySchedule())
+		theState.setMeta(dists, lastOp, prev, indeg, Q, true);
+
+		if( ! theState.verifySchedule(true))
 			throw errorText(theState.toString() + "\n\t\tBad schedule !!!!!","","");
 
 #ifdef PRINT_DEFAULT

@@ -9,20 +9,42 @@ project(psp)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 #include(CMakeBuildTypes)
 
-set(CMAKE_CXX_FLAGS_DEBUG "-g -ggdb -Wall -Wunused -Wno-unknown-pragmas -fPIC -DIL_STD -fexceptions -std=c++0x")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -mtune=native")
+find_package(CPLEX REQUIRED)
+if(CPLEX_FOUND)
+    include_directories(${CPLEX_INCLUDE_DIR})
+    link_directories(${CPLEX_LIBRARY})
+endif()
+
+if(CPLEX_CONCERT_FOUND)
+    include_directories(${CPLEX_CONCERT_INCLUDE_DIR})
+    link_directories(${CPLEX_CONCERT_LIBRARY})
+endif()
+
+if(CPLEX_ILOCPLEX_FOUND)
+    include_directories(${CPLEX_ILOCPLEX_INCLUDE_DIR})
+    link_directories(${CPLEX_ILOCPLEX_LIBRARY})
+endif()
+
+if(CPLEX_CP_FOUND)
+    include_directories(${CPLEX_CP_INCLUDE_DIR})
+    link_directories(${CPLEX_CP_LIBRARY})
+endif()
+
+
+set(CMAKE_CXX_FLAGS_DEBUG "-g -ggdb -Wall -Wunused -Wno-unknown-pragmas -fPIC -DIL_STD -fexceptions  -std=c++0x ")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -lm -lpthread -ldl -mtune=native")
 
 #find_package(cplex)
 #find_package(cairo)
 #find_package(GLUT)
 #find_package(OpenGL)
 #set(Boost_NO_SYSTEM_PATHS ON)
-find_package(Boost 1.49.0 COMPONENTS program_options timer system chrono)
+find_package(Boost 1.49.0 COMPONENTS program_options timer system chrono cplex)
 
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
+#include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+#link_directories(${Boost_LIBRARY_DIRS})
 
-#include_directories(SYSTEM ${CPLEX_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+#include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 #link_directories(${Boost_LIBRARY_DIRS})
 
 #set(single_targets main mainIG mainInstChars mainRace mainTester mainPrepBatcher)
@@ -34,8 +56,8 @@ link_directories(${Boost_LIBRARY_DIRS})
 #  target_link_libraries(${target} ${Boost_LIBRARIES} rt)
 #endforeach(target)
 
-add_executable(main main.cpp)
-target_link_libraries(main ${Boost_LIBRARIES} rt)
+add_executable(main main.cpp) 
+target_link_libraries(main ${Boost_LIBRARIES} rt cplex-library cplex-concert ilocplex cplex-cp )
 
 #add_executable(intershop intershop.cpp jv/lap.cpp)
 #target_link_libraries(intershop ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES} ${Boost_LIBRARIES} rt)
