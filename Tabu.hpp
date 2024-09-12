@@ -510,11 +510,19 @@ namespace Tabu {
 ////					assert(curState.job[critic[pos]] == critic[pos+1]    ||    curState.mach[critic[pos]] == critic[pos+1]);
 ////#endif
 //				State::fillCandidatesN5(cands, jobBb, machBb, critic);
-
+				 
 				//State::fillCandidatesAllSwaps(cands, curState.mach);
-				if(trySwapNeigh == 1 || !curState.lPenalty){
+				
+				if(trySwapNeigh == 1){
 					State::fillCandidatesAllSwaps(cands, curState.mach);
-				} 
+				}
+				else if (curState.lPenalty <= theState.penalties / 4) {
+					vector<unsigned> earlBlock;
+					curState.getEarlBlock(earlBlock);
+					curState.schedulerCplexRelax(earlBlock);
+					cplex = true;
+					State::fillCandidatesCriticTotal(cands, curState.startTime, curState._job, curState._mach);
+				}
 				else{
 					//State::findCriticOper(criticOper, curState.startTime, curState._job, curState._mach);
 					//State::fillCandidatesCriticOper(cands, criticOper);
@@ -581,9 +589,11 @@ namespace Tabu {
 				curState.millisecsFound=duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count();
 			}
 			else {
-				if (trySwapNeigh) trySwapNeigh = 0;
-				else trySwapNeigh = 1;
+				if (trySwapNeigh == 1) trySwapNeigh = 0;
+				else trySwapNeigh += 1;
 			}
+
+			if (cplex) cplex = false;
 		}//end while
 
 		assert(maxMillisecs <= duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count());
