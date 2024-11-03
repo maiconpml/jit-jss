@@ -1521,13 +1521,13 @@ public:
 				}
 			}
 
-			/* For each machine set machine precendence constraints*/
+			/* For each machine, set machine precendence constraints*/
 			for (unsigned i = 0; i < inst.M; ++i) {
 				unsigned auxOp = machHeads[i];
 				while (mach[auxOp]) {
-					/* If current machine is the relaxed machine set machine precedence constraints between non-relaxed and relaxed operations*/
+					/* If current machine is the relaxed machine, set machine precedence constraints between non-relaxed and relaxed operations*/
 					if (relaxBlock.size() && i == inst.operToM[relaxBlock[0]]) {
-						/* If the next operations are relaxed operations set all precendence constraints between current and relaxed operations*/
+						/* If the next operations is a relaxed operation, set all precendence constraints between current and relaxed operations*/
 						if (mach[auxOp] == relaxBlock[0]) {
 							for (unsigned j = 0; j < relaxBlock.size(); ++j) {
 								jitModel.add(completionTimes[auxOp - 1] <= completionTimes[relaxBlock[j] - 1] - inst.P[relaxBlock[j]]);
@@ -1535,7 +1535,7 @@ public:
 							auxOp = mach[relaxBlock[relaxBlock.size() - 1]];
 							continue;
 						}
-						/* If current operation is directly after relaxed operations set all precedence constraints between relaxed and current operations*/
+						/* If current operation is directly after relaxed operations, set all precedence constraints between relaxed and current operations*/
 						else if (_mach[auxOp] == relaxBlock[relaxBlock.size() - 1]) {
 							for (unsigned j = 0; j < relaxBlock.size(); ++j) {
 								jitModel.add(completionTimes[relaxBlock[j] - 1] <= completionTimes[auxOp - 1] - inst.P[auxOp]);
@@ -2117,13 +2117,12 @@ public:
 #endif //NDEBUG
 
 
-		vector<unsigned> job;
-		vector<unsigned> _job;
-		vector<unsigned> mach;
-		vector<unsigned> _mach;
-		vector<unsigned> startTime;
-		vector<double> operPenalties;
-		vector<double> tardPenalties;
+		vector<unsigned> job;							// job[o] is next operation of o in its job
+		vector<unsigned> _job;						// _job[o] is previous operation of o in its job
+		vector<unsigned> mach;						// mach[o] is next operation of o in its machine
+		vector<unsigned> _mach;						// _mach[o] is previous operation of o in its machine
+		vector<unsigned> startTime;				// startTime[o] is the startTime of operation o
+		vector<double> operPenalties;			
 		unsigned makes;
 		unsigned millisecsFound;
 		double lPenalty;
