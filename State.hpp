@@ -1907,10 +1907,9 @@ public:
 	}
 
 	void printPenalties(){
-
 		vector<unsigned> schedule = genSchedule(true);
 #ifdef PRINT_DEFAULT
-		cout << makes << " ";
+		cout << makes << " " << millisecsFound << " ";
 #endif //PRINT_ONLY_RESULT
 
 		inst.printPenalties(schedule,makes);		

@@ -602,6 +602,7 @@ namespace Tabu {
 	}
 	
 	void nosmuTabu(const string & instPath, const string & name, unsigned tenure, unsigned initialjumpLimit, unsigned jumpLimitDecrease, unsigned bjSize, unsigned maxD, unsigned maxC, unsigned startType, unsigned maxMillisecs, bool timeLog) {
+
 		high_resolution_clock::time_point tpStart = high_resolution_clock::now();
 
 		inst.parse(instPath);
@@ -638,11 +639,13 @@ namespace Tabu {
 		return;
 #endif //PRINT_ONLY_IS
 
-		theState.millisecsFound = duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count();;
+		theState.millisecsFound = duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count();
 
 		evolveTabu(theState, tenure, initialjumpLimit, jumpLimitDecrease, bjSize, tpStart, dists, prev, indeg, Q, maxD, maxC, 0, maxMillisecs, UINT_MAX, "", heads, tails, timeLog, false);
 		
 		theState.setMeta(dists, lastOp, prev, indeg, Q, true);
+
+		theState.millisecsFound = duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count();
 
 		if( ! theState.verifySchedule(true))
 			throw errorText(theState.toString() + "\n\t\tBad schedule !!!!!","","");
