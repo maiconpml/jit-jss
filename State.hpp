@@ -1499,10 +1499,10 @@ public:
 				}
 
 				/* Penalties constraints*/
-				jitModel.add(IloMax(inst.deadlines[i] - completionTimes[i - 1], 0) >= inst.deadlines[i] - completionTimes[i - 1]);
+				/*jitModel.add(IloMax(inst.deadlines[i] - completionTimes[i - 1], 0) >= inst.deadlines[i] - completionTimes[i - 1]);
 				jitModel.add(IloMax(completionTimes[i - 1] - inst.deadlines[i], 0) >= completionTimes[i - 1] - inst.deadlines[i]);
 				jitModel.add(IloMax(inst.deadlines[i] - completionTimes[i - 1], 0) >= 0);
-				jitModel.add(IloMax(completionTimes[i - 1] - inst.deadlines[i], 0) >= 0);
+				jitModel.add(IloMax(completionTimes[i - 1] - inst.deadlines[i], 0) >= 0);*/
 			}
 
 			vector<unsigned> machHeads(inst.M, 0);
@@ -1643,10 +1643,10 @@ public:
 				}
 
 				/* Penalties constraints*/
-				jitModel.add(IloMax(inst.deadlines[i] - completionTimes[i - 1], 0) >= inst.deadlines[i] - completionTimes[i - 1]);
+				/*jitModel.add(IloMax(inst.deadlines[i] - completionTimes[i - 1], 0) >= inst.deadlines[i] - completionTimes[i - 1]);
 				jitModel.add(IloMax(completionTimes[i - 1] - inst.deadlines[i], 0) >= completionTimes[i - 1] - inst.deadlines[i]);
 				jitModel.add(IloMax(inst.deadlines[i] - completionTimes[i - 1], 0) >= 0);
-				jitModel.add(IloMax(completionTimes[i - 1] - inst.deadlines[i], 0) >= 0);
+				jitModel.add(IloMax(completionTimes[i - 1] - inst.deadlines[i], 0) >= 0);*/
 			}
 
 			jitModel.add(IloMinimize(jitEnv, objExpr));
