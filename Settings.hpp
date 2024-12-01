@@ -8,8 +8,9 @@
 using namespace std;
 
 #include <assert.h>
-#include<vector>
-#include<string>
+#include <climits>
+#include <vector>
+#include <string>
 
 //#define COUNT_STEPS
 #ifdef COUNT_STEPS
@@ -68,7 +69,7 @@ unsigned currentShownSeconds;
 #define METROPOLIS 4001
 #define BEST_JUMP 4002
 
-vector<string> resultList;
+extern vector<string> resultList;
 
 #ifdef PRINT_NEIGHBOURS_NB
 	vector<double> neigh;
