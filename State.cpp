@@ -1299,6 +1299,95 @@ void State::gifflerThompson() {
 	assert(cand.size() < inst.O);
 }
 
+void topoWalk( unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q ){
+	unsigned qInsert = 0;
+	unsigned qAccess = 0;
+	unsigned curOp;
+	unsigned newOp;
+	unsigned newMax;
+	makes = 0;
+
+	for (unsigned o = 1; o < inst.O; o++) {
+		if (_job[o] != 0)
+			indeg[o]++;
+		if (_mach[o] != 0)
+			indeg[o]++;
+		if (indeg[o] == 0) {
+			prev[o] = 0;
+			Q[qInsert++] = o;
+		}
+	}
+		
+	while(qAccess < qInsert){
+		curOp = Q[qAccess++];
+		newOp = job[curOp];
+		
+		if (newOp != 0) {
+			indeg[newOp]--;
+			if (indeg[newOp] == 0) {
+				Q[qInsert++] = newOp;
+			}
+		}
+
+		newOp = mach[curOp];
+		if (newOp != 0) {
+			assert(indeg[newOp] > 0);
+			indeg[newOp]--;
+			if (indeg[newOp] == 0) {
+				assert(qInsert < Q.size() - 1);
+				Q[qInsert++] = newOp;
+			}
+		}
+	}
+}
+
+void forceDelay(vector<unsigned>& starts,vector<unsigned> & lateCands, unsigned op ){}
+
+void updateStrength(vector<unsigned>& lateCands, double & pS, double & hS ){
+	pS = 0;
+	hS = 0;
+	for(int i = 1; i < lateCands.size();i++){
+		if(lateCands[i] == 1) pS += inst.earlPenalties[i];
+		else if(lateCands[i] == 2) hS += inst.tardPenalties[i];
+	}
+}
+
+unsigned calcDelayTime(vector<unsigned> & starts,vector<unsigned>& lateCands,vector<unsigned>& heads){
+	unsigned t = UINT_MAX;
+	unsigned m = UINT_MAX;
+	for(int i = 1; i< lateCands.size(); i++){
+		if(!lateCands[i]) continue;
+		int aux = (int)inst.deadlines[i] - (int)(stars[i] + inst.P[i])
+		if(aux > 0 && aux < m) m = aux;
+		 
+	}
+}
+
+void schedule(vector<unsigned>& starts, unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q ){
+	unsigned delayTime= 0;
+	vector<unsigned> limited;
+	vector<unsigned> heads;
+	vector<unsigned> ops = reverse(Q);
+	vector<unsigned> lateCands(inst.O, 0);
+	double pushStrength, holdStrength;
+	fill(starts.begin(), starts.end(), 0);
+	topoWalk(lastOp, prev, indeg, Q);
+	for(int i = 0; i < ops.size(); i++){
+		lateCands[ops[i]] = 1; // 1- late 2- early/on schedule
+		heads.push_back(ops[i]); // first earlies operations 
+		
+		if(job[ops[i]] && starts[job[ops[i]]] < inst.P[ops[i]] ||mach[ops[i]] && starts[mach[ops[i]]] < inst.P[ops[i]]){
+			forceDelay(starts,lateCands,ops[i]);
+		}
+
+		updateStrength(lateCands, pushStrength, holdStrength);
+
+		while(pushStrength > holdStrength){
+			delayTime = calcDelayTime(lateCands, heads);
+		}
+	}
+
+}
 //N5 neighbourhood first improvement - randomizes
 //	void localSearch( vector<unsigned> & dists, vector<unsigned> & prev, vector<unsigned> & indeg, vector<unsigned> & Q, vector<unsigned> & jobBb, vector<unsigned> & machBb, vector<pair<unsigned, unsigned>> & cands, vector<unsigned> & critic, unsigned lowerBound) {
 //#ifndef NDEBUG
