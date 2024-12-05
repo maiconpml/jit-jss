@@ -1357,9 +1357,24 @@ unsigned calcDelayTime(vector<unsigned> & starts,vector<unsigned>& lateCands,vec
 	unsigned m = UINT_MAX;
 	for(int i = 1; i< lateCands.size(); i++){
 		if(!lateCands[i]) continue;
-		int aux = (int)inst.deadlines[i] - (int)(stars[i] + inst.P[i])
-		if(aux > 0 && aux < m) m = aux;
-		 
+		int aux = (int)(stars[i] + inst.P[i])
+		if((int)inst.deadlines[i] - aux > 0 && (int)inst.deadlines[i] - aux < m) m = (int)inst.deadlines[i] - aux;
+		if(mach[i] && start[mach[i]] - aux > 0 && start[mach[i]] - aux < m ) m = start[mach[i]] - aux;
+		if(job[i] && start[job[i]] - aux > 0 && start[job[i]] - aux < m ) m = start[job[i]] - aux;
+		if(m < t){
+			t = m;
+			heads.clear();
+			heads.push_back(i);
+		} else if(m == t) heads.push_back(i);
+	}
+	return t;
+}
+
+void delay(vector<unsigned> & starts,vector<unsigned>& lateCands, unsigned & t){
+	for(int i = 1; lateCands.size(); i++){
+		if(lateCands[i]){
+			starts[i] = starts[i] + t;
+		}
 	}
 }
 
@@ -1375,15 +1390,15 @@ void schedule(vector<unsigned>& starts, unsigned& lastOp, vector<unsigned>& prev
 	for(int i = 0; i < ops.size(); i++){
 		lateCands[ops[i]] = 1; // 1- late 2- early/on schedule
 		heads.push_back(ops[i]); // first earlies operations 
-		
 		if(job[ops[i]] && starts[job[ops[i]]] < inst.P[ops[i]] ||mach[ops[i]] && starts[mach[ops[i]]] < inst.P[ops[i]]){
 			forceDelay(starts,lateCands,ops[i]);
 		}
-
 		updateStrength(lateCands, pushStrength, holdStrength);
-
 		while(pushStrength > holdStrength){
-			delayTime = calcDelayTime(lateCands, heads);
+			delayTime = calcDelayTime(starts,lateCands, heads);
+			delay(starts, lateCands, delaTime)
+			//update();
+			updateStrength(lateCands, pushStrength, holdStrength);
 		}
 	}
 
