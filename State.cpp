@@ -1352,7 +1352,7 @@ void updateStrength(vector<unsigned>& lateCands, double & pS, double & hS ){
 	}
 }
 
-unsigned calcDelayTime(vector<unsigned> & starts,vector<unsigned>& lateCands,vector<unsigned>& heads){
+unsigned calcDelayTime(vector<unsigned> & starts,vector<unsigned>& lateCands,vector<unsigned>& limited){
 	unsigned t = UINT_MAX;
 	unsigned m = UINT_MAX;
 	for(int i = 1; i< lateCands.size(); i++){
@@ -1363,9 +1363,9 @@ unsigned calcDelayTime(vector<unsigned> & starts,vector<unsigned>& lateCands,vec
 		if(job[i] && start[job[i]] - aux > 0 && start[job[i]] - aux < m ) m = start[job[i]] - aux;
 		if(m < t){
 			t = m;
-			heads.clear();
-			heads.push_back(i);
-		} else if(m == t) heads.push_back(i);
+			limited.clear();
+			limited[i] = 1;
+		} else if(m == t) limited[i] = 1;
 	}
 	return t;
 }
@@ -1378,9 +1378,78 @@ void delay(vector<unsigned> & starts,vector<unsigned>& lateCands, unsigned & t){
 	}
 }
 
+void update(vector<unsigned>& lateCands, vector<unsigned> & limited, vector<unsigned> & heads, vector<unsigned> & starts){
+	queue<unsigned> remove;
+	queue<unsigned> auxL;
+	for(unsigned o : heads){
+		if(inst.P[o]+ starts[o] == inst.deadlines[o]){
+			remove.push(o);
+			while(!remove.empty()){
+				unsigned c = remove.front();
+				remove.pop();
+				if(lateCands[mach[c]] && inst.P[mach[c]]+ starts[mach[c]] >= inst.deadlines[mach[c]])  remove.push(mach[c]);
+				else heads.push_back(mach[c]);
+
+				if(lateCands[job[c]] && inst.P[job[c]]+ starts[job[c]] >= inst.deadlines[job[c]])  remove.push(job[c]);
+				else heads.push_back(job[c]);
+
+				if(limited[c]) limited[c] = 0;
+				lateCands[c] = 0;
+
+			}
+		}
+	}
+	for(int i = 1; i< inst.O; i++){
+		if(limited) auxL.push(i);
+	}
+	while(!auxL.empty()){
+		unsigned o = auxL.front();
+		auxL.pop();
+		if(inst.P[o]+ starts[o] == inst.deadlines[o] && lateCands[o]==1) lateCands[o]  = 2;
+		if(job[0] && inst.P[o]+ starts[o] == starts[job[o]]){
+			auxL.push(job[o]);
+			if(inst.P[job[o]]+ starts[job[o]] >= inst.deadlines[job[o]]) lateCands[job[o]] = 2;
+			else lateCands[job[o]] = 1;
+		}
+
+		if(mach[o] && inst.P[o]+ starts[o] == starts[mach[0]]){
+			auxL.push(mach[o]);
+			if(inst.P[mach[o]]+ starts[mach[o]] >= inst.deadlines[mach[o]]) lateCands[mach[o]] = 2;
+			else lateCands[mach[o]] = 1;
+		}
+	}
+}
+
+void forcedDelay(vector<unsigned> & starts,vector<unsigned>& lateCands, unsigned & op){
+	vector<unsigned> auxS = starts, auxP = inst.P;
+	unsigned co = UINT_MAX;
+	unsigned objDelay;
+	vector<unsigned> heads;
+	vector<unsigned> limited(inst.O, 0);
+	if(job[op]) co =  starts[job[op]];
+	if(mach[op] && starts[mach[op]] < co) co =  starts[mach[op]];
+
+	objDelay = co - inst.P[op];
+	starts[op] = 0;
+	inst.p[op] = co;
+
+	while(objDelay > 0){
+		
+		unsigned t = calcDelayTime(starts,lateCands,heads);
+		if(objDelay < t) t = objDelay;
+
+		delay(starts, lateCands, t);
+		update(lateCands, limited, heads, starts);
+		objDelay -= t;
+	}
+
+	starts = auxS;
+	inst.P = auxP;
+}
+
 void schedule(vector<unsigned>& starts, unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q ){
 	unsigned delayTime= 0;
-	vector<unsigned> limited;
+	vector<unsigned> limited(inst.O, 0);
 	vector<unsigned> heads;
 	vector<unsigned> ops = reverse(Q);
 	vector<unsigned> lateCands(inst.O, 0);
@@ -1395,11 +1464,15 @@ void schedule(vector<unsigned>& starts, unsigned& lastOp, vector<unsigned>& prev
 		}
 		updateStrength(lateCands, pushStrength, holdStrength);
 		while(pushStrength > holdStrength){
-			delayTime = calcDelayTime(starts,lateCands, heads);
+			delayTime = calcDelayTime(starts,lateCands, limited);
 			delay(starts, lateCands, delaTime)
-			//update();
+			update(lateCands, limited, heads,starts);
 			updateStrength(lateCands, pushStrength, holdStrength);
 		}
+
+		fill(lateCands.begin(), lateCands.end(), 0);
+		fill(limited.begin(), limited.end(), 0);
+		heads.clear();
 	}
 
 }
