@@ -288,6 +288,20 @@ public:
 
 	void printPenalties();
 
+	void topoWalk( unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q );
+
+	void updateStrength(vector<unsigned>& lateCands, double & pS, double & hS );
+
+	unsigned calcDelayTime(vector<unsigned> & starts,vector<unsigned>& lateCands,vector<unsigned>& limited);
+
+	void delay(vector<unsigned> & starts,vector<unsigned>& lateCands, unsigned & t);
+
+	void update(vector<unsigned>& lateCands, vector<unsigned> & limited, vector<unsigned> & heads, vector<unsigned> & starts);
+
+		
+	void forcedDelay(vector<unsigned> & starts,vector<unsigned>& lateCands, unsigned & op);
+
+	void schedule(vector<unsigned>& starts, unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q );
 #ifndef NDEBUG
 	bool isAlloced() const;
 

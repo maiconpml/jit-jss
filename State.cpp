@@ -1299,7 +1299,7 @@ void State::gifflerThompson() {
 	assert(cand.size() < inst.O);
 }
 
-void topoWalk( unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q ){
+void State::topoWalk( unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q ){
 	unsigned qInsert = 0;
 	unsigned qAccess = 0;
 	unsigned curOp;
@@ -1341,9 +1341,8 @@ void topoWalk( unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg
 	}
 }
 
-void forceDelay(vector<unsigned>& starts,vector<unsigned> & lateCands, unsigned op ){}
 
-void updateStrength(vector<unsigned>& lateCands, double & pS, double & hS ){
+void State::updateStrength(vector<unsigned>& lateCands, double & pS, double & hS ){
 	pS = 0;
 	hS = 0;
 	for(int i = 1; i < lateCands.size();i++){
@@ -1352,15 +1351,15 @@ void updateStrength(vector<unsigned>& lateCands, double & pS, double & hS ){
 	}
 }
 
-unsigned calcDelayTime(vector<unsigned> & starts,vector<unsigned>& lateCands,vector<unsigned>& limited){
+unsigned State::calcDelayTime(vector<unsigned> & starts,vector<unsigned>& lateCands,vector<unsigned>& limited){
 	unsigned t = UINT_MAX;
 	unsigned m = UINT_MAX;
 	for(int i = 1; i< lateCands.size(); i++){
 		if(!lateCands[i]) continue;
-		int aux = (int)(stars[i] + inst.P[i])
+		int aux = (int)(starts[i] + inst.P[i]);
 		if((int)inst.deadlines[i] - aux > 0 && (int)inst.deadlines[i] - aux < m) m = (int)inst.deadlines[i] - aux;
-		if(mach[i] && start[mach[i]] - aux > 0 && start[mach[i]] - aux < m ) m = start[mach[i]] - aux;
-		if(job[i] && start[job[i]] - aux > 0 && start[job[i]] - aux < m ) m = start[job[i]] - aux;
+		if(mach[i] && starts[mach[i]] - aux > 0 && starts[mach[i]] - aux < m ) m = starts[mach[i]] - aux;
+		if(job[i] && starts[job[i]] - aux > 0 && starts[job[i]] - aux < m ) m = starts[job[i]] - aux;
 		if(m < t){
 			t = m;
 			limited.clear();
@@ -1370,7 +1369,7 @@ unsigned calcDelayTime(vector<unsigned> & starts,vector<unsigned>& lateCands,vec
 	return t;
 }
 
-void delay(vector<unsigned> & starts,vector<unsigned>& lateCands, unsigned & t){
+void State::delay(vector<unsigned> & starts,vector<unsigned>& lateCands, unsigned & t){
 	for(int i = 1; lateCands.size(); i++){
 		if(lateCands[i]){
 			starts[i] = starts[i] + t;
@@ -1378,7 +1377,7 @@ void delay(vector<unsigned> & starts,vector<unsigned>& lateCands, unsigned & t){
 	}
 }
 
-void update(vector<unsigned>& lateCands, vector<unsigned> & limited, vector<unsigned> & heads, vector<unsigned> & starts){
+void State::update(vector<unsigned>& lateCands, vector<unsigned> & limited, vector<unsigned> & heads, vector<unsigned> & starts){
 	queue<unsigned> remove;
 	queue<unsigned> auxL;
 	for(unsigned o : heads){
@@ -1400,7 +1399,7 @@ void update(vector<unsigned>& lateCands, vector<unsigned> & limited, vector<unsi
 		}
 	}
 	for(int i = 1; i< inst.O; i++){
-		if(limited) auxL.push(i);
+		if(limited[i]) auxL.push(i);
 	}
 	while(!auxL.empty()){
 		unsigned o = auxL.front();
@@ -1420,7 +1419,7 @@ void update(vector<unsigned>& lateCands, vector<unsigned> & limited, vector<unsi
 	}
 }
 
-void forcedDelay(vector<unsigned> & starts,vector<unsigned>& lateCands, unsigned & op){
+void State::forcedDelay(vector<unsigned> & starts,vector<unsigned>& lateCands, unsigned & op){
 	vector<unsigned> auxS = starts, auxP = inst.P;
 	unsigned co = UINT_MAX;
 	unsigned objDelay;
@@ -1431,7 +1430,7 @@ void forcedDelay(vector<unsigned> & starts,vector<unsigned>& lateCands, unsigned
 
 	objDelay = co - inst.P[op];
 	starts[op] = 0;
-	inst.p[op] = co;
+	inst.P[op] = co;
 
 	while(objDelay > 0){
 		
@@ -1447,11 +1446,12 @@ void forcedDelay(vector<unsigned> & starts,vector<unsigned>& lateCands, unsigned
 	inst.P = auxP;
 }
 
-void schedule(vector<unsigned>& starts, unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q ){
+void State::schedule(vector<unsigned>& starts, unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q ){
 	unsigned delayTime= 0;
 	vector<unsigned> limited(inst.O, 0);
 	vector<unsigned> heads;
-	vector<unsigned> ops = reverse(Q);
+	vector<unsigned> ops(Q);
+	reverse(ops.begin(),ops.end());
 	vector<unsigned> lateCands(inst.O, 0);
 	double pushStrength, holdStrength;
 	fill(starts.begin(), starts.end(), 0);
@@ -1459,13 +1459,13 @@ void schedule(vector<unsigned>& starts, unsigned& lastOp, vector<unsigned>& prev
 	for(int i = 0; i < ops.size(); i++){
 		lateCands[ops[i]] = 1; // 1- late 2- early/on schedule
 		heads.push_back(ops[i]); // first earlies operations 
-		if(job[ops[i]] && starts[job[ops[i]]] < inst.P[ops[i]] ||mach[ops[i]] && starts[mach[ops[i]]] < inst.P[ops[i]]){
-			forceDelay(starts,lateCands,ops[i]);
+		if( job[ops[i]] && starts[job[ops[i]]] < inst.P[ops[i]] || mach[ops[i]] && starts[mach[ops[i]]] < inst.P[ops[i]]){
+			forcedDelay(starts,lateCands,ops[i]);
 		}
 		updateStrength(lateCands, pushStrength, holdStrength);
 		while(pushStrength > holdStrength){
 			delayTime = calcDelayTime(starts,lateCands, limited);
-			delay(starts, lateCands, delaTime)
+			delay(starts, lateCands, delayTime);
 			update(lateCands, limited, heads,starts);
 			updateStrength(lateCands, pushStrength, holdStrength);
 		}
