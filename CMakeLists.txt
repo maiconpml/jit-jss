@@ -56,7 +56,7 @@ find_package(Boost 1.49.0 COMPONENTS program_options timer system chrono cplex)
 #  target_link_libraries(${target} ${Boost_LIBRARIES} rt)
 #endforeach(target)
 
-add_executable(main main.cpp Instance.cpp State.cpp Tabu.cpp Utilities.cpp) 
+add_executable(main main.cpp Instance.cpp State.cpp Tabu.cpp Utilities.cpp Schedulers.cpp InitialSolution.cpp Instance.cpp JumpList.cpp Neighborhoods.cpp Poset.cpp TabuList.cpp TabuTrio.cpp) 
 target_link_libraries(main ${Boost_LIBRARIES} rt cplex-library cplex-concert ilocplex cplex-cp )
 
 #add_executable(intershop intershop.cpp jv/lap.cpp)
