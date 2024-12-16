@@ -950,14 +950,15 @@ void State::insaPsp(bool bigJobFirst, vector<unsigned>& indeg, vector<unsigned>&
 	}
 }
 
-
-void State::topoWalk( unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q ){
+bool State::topoWalk(vector<unsigned>& indeg, vector<unsigned>& Q ){
 	unsigned qInsert = 0;
 	unsigned qAccess = 0;
 	unsigned curOp;
 	unsigned newOp;
-	unsigned newMax;
+	//unsigned newMax;
 	makes = 0;
+
+	fill(indeg.begin(), indeg.end(), 0);
 
 	for (unsigned o = 1; o < inst.O; o++) {
 		if (_job[o] != 0)
@@ -965,7 +966,6 @@ void State::topoWalk( unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>
 		if (_mach[o] != 0)
 			indeg[o]++;
 		if (indeg[o] == 0) {
-			prev[o] = 0;
 			Q[qInsert++] = o;
 		}
 	}
@@ -991,13 +991,14 @@ void State::topoWalk( unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>
 			}
 		}
 	}
-}
 
+	return qAccess < inst.O - 1;
+}
 
 void State::updateStrength(vector<unsigned>& lateCands, double & pS, double & hS ){
 	pS = 0;
 	hS = 0;
-	for(int i = 1; i < lateCands.size();i++){
+	for(unsigned i = 1; i < lateCands.size();i++){
 		if(lateCands[i] == 1) pS += inst.earlPenalties[i];
 		else if(lateCands[i] == 2) hS += inst.tardPenalties[i];
 	}
@@ -1005,24 +1006,30 @@ void State::updateStrength(vector<unsigned>& lateCands, double & pS, double & hS
 
 unsigned State::calcDelayTime(vector<unsigned> & starts,vector<unsigned>& lateCands,vector<unsigned>& limited){
 	unsigned t = UINT_MAX;
-	unsigned m = UINT_MAX;
-	for(int i = 1; i< lateCands.size(); i++){
+	unsigned m;
+	vector<unsigned> limitedAux;
+	for(unsigned i = 1; i< lateCands.size(); i++){
 		if(!lateCands[i]) continue;
-		int aux = (int)(starts[i] + inst.P[i]);
-		if((int)inst.deadlines[i] - aux > 0 && (int)inst.deadlines[i] - aux < m) m = (int)inst.deadlines[i] - aux;
-		if(mach[i] && starts[mach[i]] - aux > 0 && starts[mach[i]] - aux < m ) m = starts[mach[i]] - aux;
-		if(job[i] && starts[job[i]] - aux > 0 && starts[job[i]] - aux < m ) m = starts[job[i]] - aux;
+		m = UINT_MAX;
+		unsigned aux = starts[i] + inst.P[i];
+		if(inst.deadlines[i] > aux && inst.deadlines[i] - aux < m) m = inst.deadlines[i] - aux;
+		if(mach[i] && (starts[mach[i]] > aux || !lateCands[mach[i]]) && starts[mach[i]] - aux < m) m = starts[mach[i]] - aux;
+		if (job[i] && (starts[job[i]] > aux || !lateCands[job[i]]) && starts[job[i]] - aux < m) m = starts[job[i]] - aux;
 		if(m < t){
 			t = m;
-			limited.clear();
-			limited[i] = 1;
-		} else if(m == t) limited[i] = 1;
+			limitedAux.clear();
+			limitedAux.push_back(i);
+		} else if(m == t) limitedAux.push_back(i);;
+	}
+	fill(limited.begin(), limited.end(), 0);
+	for (unsigned i = 0; i < limitedAux.size(); ++i) {
+		limited[limitedAux[i]] = 1;
 	}
 	return t;
 }
 
 void State::delay(vector<unsigned> & starts,vector<unsigned>& lateCands, unsigned & t){
-	for(int i = 1; lateCands.size(); i++){
+	for(unsigned i = 1; i < lateCands.size(); i++){
 		if(lateCands[i]){
 			starts[i] = starts[i] + t;
 		}
@@ -1032,17 +1039,24 @@ void State::delay(vector<unsigned> & starts,vector<unsigned>& lateCands, unsigne
 void State::update(vector<unsigned>& lateCands, vector<unsigned> & limited, vector<unsigned> & heads, vector<unsigned> & starts){
 	queue<unsigned> remove;
 	queue<unsigned> auxL;
-	for(unsigned o : heads){
-		if(inst.P[o]+ starts[o] == inst.deadlines[o]){
+	vector<unsigned> headsCpy(heads);
+	vector<unsigned> headsRmv(inst.O, 0);
+	unsigned iterations = heads.size();
+	heads.clear();
+	for (unsigned o = 0; o < iterations; ++o) {
+		if(inst.P[headsCpy[o]]+ starts[headsCpy[o]] == inst.deadlines[headsCpy[o]]){
+			headsRmv[headsCpy[o]] = 1;
 			remove.push(o);
+
 			while(!remove.empty()){
 				unsigned c = remove.front();
 				remove.pop();
+
 				if(lateCands[mach[c]] && inst.P[mach[c]]+ starts[mach[c]] >= inst.deadlines[mach[c]])  remove.push(mach[c]);
-				else heads.push_back(mach[c]);
+				else if (lateCands[mach[c]]) headsCpy.push_back(mach[c]);
 
 				if(lateCands[job[c]] && inst.P[job[c]]+ starts[job[c]] >= inst.deadlines[job[c]])  remove.push(job[c]);
-				else heads.push_back(job[c]);
+				else if (lateCands[job[c]]) headsCpy.push_back(job[c]);
 
 				if(limited[c]) limited[c] = 0;
 				lateCands[c] = 0;
@@ -1050,20 +1064,24 @@ void State::update(vector<unsigned>& lateCands, vector<unsigned> & limited, vect
 			}
 		}
 	}
-	for(int i = 1; i< inst.O; i++){
+	for (unsigned i = 0; i < headsCpy.size(); ++i) {
+		if (!headsRmv[headsCpy[i]]) heads.push_back(headsCpy[i]);
+	}
+
+	for(unsigned i = 1; i< inst.O; i++){
 		if(limited[i]) auxL.push(i);
 	}
+
 	while(!auxL.empty()){
 		unsigned o = auxL.front();
 		auxL.pop();
 		if(inst.P[o]+ starts[o] == inst.deadlines[o] && lateCands[o]==1) lateCands[o]  = 2;
-		if(job[0] && inst.P[o]+ starts[o] == starts[job[o]]){
+		if(job[o] && inst.P[o]+ starts[o] == starts[job[o]]){
 			auxL.push(job[o]);
 			if(inst.P[job[o]]+ starts[job[o]] >= inst.deadlines[job[o]]) lateCands[job[o]] = 2;
 			else lateCands[job[o]] = 1;
 		}
 
-		if(mach[o] && inst.P[o]+ starts[o] == starts[mach[0]]){
 			auxL.push(mach[o]);
 			if(inst.P[mach[o]]+ starts[mach[o]] >= inst.deadlines[mach[o]]) lateCands[mach[o]] = 2;
 			else lateCands[mach[o]] = 1;
@@ -1072,7 +1090,7 @@ void State::update(vector<unsigned>& lateCands, vector<unsigned> & limited, vect
 }
 
 void State::forcedDelay(vector<unsigned> & starts,vector<unsigned>& lateCands, unsigned & op){
-	vector<unsigned> auxS = starts, auxP = inst.P;
+	vector<unsigned> auxP = inst.P;
 	unsigned co = UINT_MAX;
 	unsigned objDelay;
 	vector<unsigned> heads;
@@ -1080,13 +1098,16 @@ void State::forcedDelay(vector<unsigned> & starts,vector<unsigned>& lateCands, u
 	if(job[op]) co =  starts[job[op]];
 	if(mach[op] && starts[mach[op]] < co) co =  starts[mach[op]];
 
-	objDelay = co - inst.P[op];
+	objDelay = inst.P[op] -  co ;
 	starts[op] = 0;
 	inst.P[op] = co;
+	heads.push_back(op);
+	limited[op] = 1;
+	update(lateCands, limited, heads, starts);
 
 	while(objDelay > 0){
 		
-		unsigned t = calcDelayTime(starts,lateCands,heads);
+		unsigned t = calcDelayTime(starts,lateCands,limited);
 		if(objDelay < t) t = objDelay;
 
 		delay(starts, lateCands, t);
@@ -1094,7 +1115,7 @@ void State::forcedDelay(vector<unsigned> & starts,vector<unsigned>& lateCands, u
 		objDelay -= t;
 	}
 
-	starts = auxS;
+	starts[op] = 0;
 	inst.P = auxP;
 }
 
