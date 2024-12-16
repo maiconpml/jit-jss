@@ -294,6 +294,7 @@ unsigned Inst::lowerBoundMss() const {
 	return lb;
 }
 
+// Verify solution given by starts
 bool Inst::verifySchedule(const vector<unsigned>& starts, unsigned expecMakes) const {
 	unsigned foundMakes = 0;
 
@@ -368,6 +369,7 @@ void Inst::generateGantt(const vector<unsigned>& starts) {
 	}
 }
 
+// Calculate earliness and tardiness of schedule given by starts
 void Inst::calcPenalties(const vector<unsigned>& starts, double& ePenalty, double& lPenalty, vector<double>& operPenalties) {
 	ePenalty = 0;
 	lPenalty = 0;
@@ -394,6 +396,7 @@ void Inst::calcPenalties(const vector<unsigned>& starts, double& ePenalty, doubl
 	}
 }
 
+// Print in format for external verifier
 void Inst::printOutForTest(const vector<unsigned>& starts) {
 	cout << M << " " << J << endl;
 	for (unsigned a = 0; a < J; a++) {
@@ -411,6 +414,7 @@ void Inst::printOutForTest(const vector<unsigned>& starts) {
 	}
 }
 
+// Print solution
 void Inst::printPenalties(const vector<unsigned>& starts, const unsigned& makes) {
 
 	double sumTardPenalties = 0;
@@ -501,6 +505,7 @@ bool Inst::hasPrec(unsigned o1, unsigned o2) const {
 	return posets[operToJ[o1]].cg.path(operToM[o1], operToM[o2]);
 }
 
+// reads file instance
 void Inst::parse(const string& filePath) {
 	P.clear();
 	operToJ.clear();
@@ -636,7 +641,6 @@ void Inst::parse(const string& filePath) {
 		posets.push_back(Poset(order, M));
 	}
 
-	assert(M <= MAX_MACHS);
 	for (unsigned j = 0; j < J; j++) {
 		assert(!posets[j].roots.empty());
 		for (unsigned m : posets[j].roots) {
