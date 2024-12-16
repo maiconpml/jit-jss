@@ -1119,86 +1119,6 @@ void State::forcedDelay(vector<unsigned> & starts,vector<unsigned>& lateCands, u
 	inst.P = auxP;
 }
 
-void State::schedule(vector<unsigned>& starts, unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q ){
-	unsigned delayTime= 0;
-	vector<unsigned> limited(inst.O, 0);
-	vector<unsigned> heads;
-	vector<unsigned> ops(Q);
-	reverse(ops.begin(),ops.end());
-	vector<unsigned> lateCands(inst.O, 0);
-	double pushStrength, holdStrength;
-	fill(starts.begin(), starts.end(), 0);
-	topoWalk(lastOp, prev, indeg, Q);
-	for(int i = 0; i < ops.size(); i++){
-		lateCands[ops[i]] = 1; // 1- late 2- early/on schedule
-		heads.push_back(ops[i]); // first earlies operations 
-		if( job[ops[i]] && starts[job[ops[i]]] < inst.P[ops[i]] || mach[ops[i]] && starts[mach[ops[i]]] < inst.P[ops[i]]){
-			forcedDelay(starts,lateCands,ops[i]);
-		}
-		updateStrength(lateCands, pushStrength, holdStrength);
-		while(pushStrength > holdStrength){
-			delayTime = calcDelayTime(starts,lateCands, limited);
-			delay(starts, lateCands, delayTime);
-			update(lateCands, limited, heads,starts);
-			updateStrength(lateCands, pushStrength, holdStrength);
-		}
-
-		fill(lateCands.begin(), lateCands.end(), 0);
-		fill(limited.begin(), limited.end(), 0);
-		heads.clear();
-	}
-
-}
-//N5 neighbourhood first improvement - randomizes
-//	void localSearch( vector<unsigned> & dists, vector<unsigned> & prev, vector<unsigned> & indeg, vector<unsigned> & Q, vector<unsigned> & jobBb, vector<unsigned> & machBb, vector<pair<unsigned, unsigned>> & cands, vector<unsigned> & critic, unsigned lowerBound) {
-//#ifndef NDEBUG
-//		bool cycle;
-//		assert(dists.size() == inst.O);
-//		assert(prev.size() == inst.O);
-//		assert(prev.size() == inst.O);
-//		assert(Q.size() == inst.O);
-//		assert(cands.capacity() == inst.O);
-//		assert(critic.capacity() == inst.O);
-//		assert(jobBb.capacity() == inst.O);
-//		assert(machBb.capacity() == inst.O);
-//#endif
-//		unsigned lastOp;
-//		unsigned thisMakes;
-//
-//		setMeta(dists, lastOp, prev, indeg, Q);
-//
-//		while(true) {
-//			assert(makes >= lowerBound);
-//			if(makes == lowerBound)
-//				break;
-//			thisMakes = makes;
-//			computeCritic(critic, lastOp, prev);
-//			assert( ! critic.empty());
-//			assert(critic.size() < inst.O);
-//			fillCandidatesN5(cands, jobBb, machBb, critic);
-//			random_shuffle(cands.begin(), cands.end());
-//
-//			for(const pair<unsigned, unsigned> & p : cands) {
-//				swap(p.first, p.second);
-//#ifndef NDEBUG
-//				cycle = 
-//#endif
-//					setMeta(dists, lastOp, prev, indeg, Q);
-//				assert( ! cycle);
-//
-//				if(thisMakes > makes) {
-//					break; //first improvement
-//				} else {
-//					swap(p.second, p.first); //undoing swap
-//				}
-//			}
-//			if(thisMakes <= makes)
-//				break;
-//		}
-//		setMeta(dists, lastOp, prev, indeg, Q);
-//		assert(makes == thisMakes);
-//	}
-
 	//maxLen = maxD * maxC
  bool State::detectRepeat(vector<int>& oldValues, unsigned& posCurPenalties, unsigned& cycleLastPos, unsigned& cycleL, double newPenalties, bool isNewBest, unsigned maxD, unsigned maxLen) {
 	assert(oldValues.size() == maxD);
@@ -1488,188 +1408,23 @@ void State::schedulerCplexRelax(vector<unsigned>& relaxBlock) {
 	startTime = dists;
 }
 
-/* Schedule operations*/
-void State::schedulerCplex(vector<unsigned>& dists) {
-
-	vector<unsigned> auxJobs = inst.roots;
-	vector<vector<unsigned>> machOrder(inst.M, vector<unsigned>(0));
-
-	dists.clear();
-	dists.push_back(0);
-
-	IloEnv jitEnv;
-	IloModel jitModel(jitEnv);
-
-	IloNumVarArray completionTimes(jitEnv, inst.O - 1, 0, IloInfinity, ILOINT);
-	try {
-		IloExpr objExpr(jitEnv);
-		for (unsigned i = 1; i < inst.O; ++i) {
-			/* Objective*/
-			objExpr += (IloMax(inst.deadlines[i] - completionTimes[i - 1], 0) * inst.earlPenalties[i]) + (IloMax(completionTimes[i - 1] - inst.deadlines[i], 0) * inst.tardPenalties[i]);
-
-			/* Start time of a job's first operation must be greater than zero*/
-			if (!_job[i]) jitModel.add(completionTimes[i - 1] - inst.P[i] >= 0);
-
-			/* Machine precedence constraints*/
-			if (mach[i]) {
-				jitModel.add(completionTimes[i - 1] <= completionTimes[mach[i] - 1] - inst.P[mach[i]]);
-			}
-
-			/* Job precedence constraints*/
-			if (job[i]) {
-				jitModel.add(completionTimes[i - 1] <= completionTimes[job[i] - 1] - inst.P[job[i]]);
-			}
-
-			/* Penalties constraints*/
-			/*jitModel.add(IloMax(inst.deadlines[i] - completionTimes[i - 1], 0) >= inst.deadlines[i] - completionTimes[i - 1]);
-			jitModel.add(IloMax(completionTimes[i - 1] - inst.deadlines[i], 0) >= completionTimes[i - 1] - inst.deadlines[i]);
-			jitModel.add(IloMax(inst.deadlines[i] - completionTimes[i - 1], 0) >= 0);
-			jitModel.add(IloMax(completionTimes[i - 1] - inst.deadlines[i], 0) >= 0);*/
-		}
-
-		jitModel.add(IloMinimize(jitEnv, objExpr));
-
-		IloCplex jitCplex(jitEnv);
-		//jitCplex.setParam(IloCplex::Param::TimeLimit, 0.5);
-		jitCplex.setOut(jitEnv.getNullStream());
-
-		jitCplex.extract(jitModel);
-
-		jitCplex.solve();
 
 
 
-		for (unsigned i = 1; i < inst.O; ++i) {
-			dists.push_back(round(jitCplex.getValue(completionTimes[i - 1])) - inst.P[i]);
-		}
-
-		penalties = jitCplex.getObjValue();
 	}
-	catch (IloException& ex) {
-		cerr << "Error: " << ex << endl;
-	}
-	catch (...) {
-		cerr << "Error" << endl;
-	}
-
 	jitEnv.end();
 
-	/* Adjust new makes*/
-	makes = 0;
-	for (unsigned i = 1; i < inst.O; ++i) {
-		if (makes < dists[i] + inst.P[i]) {
-			makes = dists[i] + inst.P[i];
+	}
+
+
+
+	}
+
 		}
 	}
 
-	/* Calculate penalties*/
-	inst.calcPenalties(dists, ePenalty, lPenalty, operPenalties);
-	penalties = ePenalty + lPenalty;
-	startTime = dists;
-}
-
-//set makes with shift to minimize earliness penalties
-bool State::setMeta(vector<unsigned>& dists, unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q, bool cplex) {
-	assert(isAlloced());
-	assert(dists.size() == inst.O);
-	assert(prev.size() == inst.O);
-	assert(indeg.size() == inst.O);
-	assert(Q.size() == inst.O);
-
-	unsigned qInsert = 0;
-	unsigned qAccess = 0;
-
-	unsigned curOp;
-	unsigned newOp;
-
-	unsigned newMax;
-
-	makes = 0;
-
-	fill(dists.begin(), dists.end(), 0);
-	fill(indeg.begin(), indeg.end(), 0);
-
-	for (unsigned o = 1; o < inst.O; o++) {
-		if (_job[o] != 0)
-			indeg[o]++;
-		if (_mach[o] != 0)
-			indeg[o]++;
-		if (indeg[o] == 0) {
-			prev[o] = 0;
-			Q[qInsert++] = o;
-		}
 	}
 
-	//assert(qInsert>0);
-
-	while (qAccess < qInsert) {
-		assert(qAccess < Q.size());
-		curOp = Q[qAccess++];
-
-		assert(indeg[curOp] == 0);
-
-		newMax = dists[curOp] + inst.P[curOp];
-		if (makes < newMax) {
-			makes = newMax;
-			lastOp = curOp;
-		}
-
-		//from JOB
-		newOp = job[curOp];
-		if (newOp != 0) {
-			assert(indeg[newOp] > 0);
-			indeg[newOp]--;
-			if (indeg[newOp] == 0) {
-				assert(qInsert < Q.size() - 1);
-				Q[qInsert++] = newOp;
-			}
-			if (dists[newOp] < newMax) {
-				dists[newOp] = newMax;
-				prev[newOp] = curOp;
-			}
-		}
-
-		//from MACH
-		newOp = mach[curOp];
-		if (newOp != 0) {
-			assert(indeg[newOp] > 0);
-			indeg[newOp]--;
-			if (indeg[newOp] == 0) {
-				assert(qInsert < Q.size() - 1);
-				Q[qInsert++] = newOp;
-			}
-			if (dists[newOp] < newMax) {
-				dists[newOp] = newMax;
-				prev[newOp] = curOp;
-			}
-		}
-	}
-
-	if (qAccess == inst.O - 1) {
-
-#ifdef SHIFT_OPERS
-#ifndef NDEBUG
-		inst.calcPenalties(dists, ePenalty, lPenalty, operPenalties);
-
-		double testPenalties = ePenalty + lPenalty;
-#endif //NDEBUG
-
-		shiftOperations(dists, Q);
-#endif //SHIFT_OPERS
-
-		inst.calcPenalties(dists, ePenalty, lPenalty, operPenalties);
-		penalties = ePenalty + lPenalty;
-		startTime = dists;
-
-		if (cplex) {
-			schedulerCplex(dists);
-		}
-#ifdef SHIFT_OPERS
-		assert(penalties <= testPenalties);
-#endif //SHIFT_OPERS
-	}
-
-	return qAccess < inst.O - 1;
 }
 
 		//@return: starts
