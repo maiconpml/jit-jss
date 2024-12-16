@@ -65,6 +65,7 @@ string State::toString() const {
 
 	return str;
 }
+
 //expects fully defined state
 string State::easyString() const {
 	assert(job[0] == 0);
@@ -907,8 +908,7 @@ void State::insaPsp(bool bigJobFirst, vector<unsigned>& indeg, vector<unsigned>&
 	}
 }
 
-
- void State::computeCritic(vector<unsigned>& critic, unsigned lastOp, const vector<unsigned>& prev) {
+void State::computeCritic(vector<unsigned>& critic, unsigned lastOp, const vector<unsigned>& prev) {
 	assert(lastOp != 0);
 	assert(lastOp < inst.O);
 	assert(critic.capacity() == inst.O);
@@ -924,7 +924,7 @@ void State::insaPsp(bool bigJobFirst, vector<unsigned>& indeg, vector<unsigned>&
 	reverse(critic.begin(), critic.end());
 }
 
- void State::blockBegins(vector<unsigned>& jobBb, vector<unsigned>& machBb, const vector<unsigned>& critic) {
+void State::blockBegins(vector<unsigned>& jobBb, vector<unsigned>& machBb, const vector<unsigned>& critic) {
 	assert(!critic.empty());
 	assert(critic.size() < inst.O);
 	assert(jobBb.capacity() == inst.O);
@@ -1082,6 +1082,7 @@ void State::update(vector<unsigned>& lateCands, vector<unsigned> & limited, vect
 			else lateCands[job[o]] = 1;
 		}
 
+		if(mach[o] && inst.P[o]+ starts[o] == starts[mach[o]]){
 			auxL.push(mach[o]);
 			if(inst.P[mach[o]]+ starts[mach[o]] >= inst.deadlines[mach[o]]) lateCands[mach[o]] = 2;
 			else lateCands[mach[o]] = 1;
@@ -1120,7 +1121,7 @@ void State::forcedDelay(vector<unsigned> & starts,vector<unsigned>& lateCands, u
 }
 
 	//maxLen = maxD * maxC
- bool State::detectRepeat(vector<int>& oldValues, unsigned& posCurPenalties, unsigned& cycleLastPos, unsigned& cycleL, double newPenalties, bool isNewBest, unsigned maxD, unsigned maxLen) {
+bool State::detectRepeat(vector<int>& oldValues, unsigned& posCurPenalties, unsigned& cycleLastPos, unsigned& cycleL, double newPenalties, bool isNewBest, unsigned maxD, unsigned maxLen) {
 	assert(oldValues.size() == maxD);
 	assert(maxD != 0);
 
