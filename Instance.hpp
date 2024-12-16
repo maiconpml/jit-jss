@@ -3,11 +3,6 @@
 */
 #pragma once
 
-//#include <vector>
-//#include <climits>
-//#include <queue>
-//#include <algorithm>
-
 #include <boost/multi_array.hpp>
 
 #include "Settings.hpp"
@@ -99,7 +94,6 @@ public:
 	vector<unsigned> operToJ; // <O> -- oper o is in operToJ[o] job
 	vector<unsigned> operToM; // <O> 
 
-	
 	vector<unsigned> roots;//<?>
 	vector<unsigned> leafs;
 
@@ -112,19 +106,10 @@ public:
 	vector<double> earlPenalties; //<O> earlPenalties[o] is earliness penalty of operation o
 	vector<double> tardPenalties;//<O>	tardPenalties[o] is tardiness penalty of operation o
 
-
 	//precedences
-
-#ifdef VANILLA_PSS
 	vector<Poset> posets; // italianos of job orders careful useing directly - use hasPrec - O(1) but expensive
-#endif //VANILLA_PSS
 
-
-#ifdef VANILLA_PSS
 	multi_array<unsigned,2> jmToIndex; //jmToIndex[j][m] = o -- may be dummy if doesnt exist
-#endif //VANILLA_PSS
-
-
 };
 
 extern Inst inst;
