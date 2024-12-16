@@ -11,6 +11,11 @@ using namespace boost;
 #include "Settings.hpp"
 #include "State.hpp"
 #include "Tabu.hpp"
+#include "Parameters.hpp"
+
+#ifdef PRINT_NEIGHBOURS_NB
+vector<double> neigh;
+#endif // PRINT_NEIGHBOURS_NB
 
 vector<string> resultList;
 Inst inst;
@@ -39,6 +44,7 @@ int main(int argc, char *argv[]) {
 			("scaleTime", po::value<double>()->default_value(1.0), "Change received time, for testing. (JSP)")
 			("searchType", po::value<string>()->default_value("iteratedGreedy"), "Type of search: iteratedGreedy - tabuSearch")
 			("onlyMakesLowerBound", po::value<bool>()->default_value(false), "To get lower bound values")
+			("schedulerType", po::value<unsigned>()->default_value(1), "Type of scheduler used: 1 - early as possible (fastest), 2 - delaying when possible (better schedule but slower, 3 - cplex (slowest but optimal)")
 			;
 		po::positional_options_description pod;
 		pod.add("instPath", 1); //instance is positional as well

@@ -1382,33 +1382,44 @@ void State::cplexSolve(const unsigned maxSecs) {
 }
 
 		//@return: starts
-vector<unsigned> State::genSchedule(bool cplex) {
+vector<unsigned> State::genSchedule(unsigned schedulerType, bool cplex) {
 
-	vector<unsigned> indeg(inst.O, 0);
-	vector<unsigned> Q(inst.O, 0);
 	vector<unsigned> starts(inst.O, 0);
-	vector<unsigned> prev(inst.O, 0);
-	unsigned lastOp;
-
 #ifndef NDEBUG
-	bool cycle =
+	bool cycle;
 #endif
-		setMeta(starts, lastOp, prev, indeg, Q, cplex);
+
+	if (schedulerType == 1) {
+#ifndef NDEBUG
+		cycle=
+#endif
+		scheduleAsEarly(starts, cplex);
+	}
+	else if (schedulerType == 2) {
+#ifndef NDEBUG
+		cycle =
+#endif
+		scheduleDelaying(starts, cplex);
+	}
+	else {
+		scheduleCplex(starts, cplex);
+	}
+
 	assert(!cycle);
 
 	return starts;
 }
 
-bool State::verifySchedule(bool cplex) {
+bool State::verifySchedule(unsigned schedulerType, bool cplex) {
 
 	unsigned testMakes = makes;//genSchedule may change makes - store here to be sure
-	vector<unsigned> schedule = genSchedule(cplex);
+	vector<unsigned> schedule = genSchedule(schedulerType, cplex);
 
 	return inst.verifySchedule(schedule, testMakes);
 }
 
-void State::printPenalties() {
-	vector<unsigned> schedule = genSchedule(true);
+void State::printPenalties(unsigned schedulerType) {
+	vector<unsigned> schedule = genSchedule(schedulerType, true);
 #ifdef PRINT_DEFAULT
 	cout << makes << " " << millisecsFound << " ";
 #endif //PRINT_ONLY_RESULT

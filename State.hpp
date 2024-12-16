@@ -89,20 +89,19 @@ public:
 	void schedulerCplexRelax(vector<unsigned>& relaxBlock);
 
 	/* Schedule operations*/ 
-	void schedulerCplex(vector<unsigned>& dists);
+	void scheduleCplex(vector<unsigned>& dists, bool cplex);
 
 	//set makes with shift to minimize earliness penalties
-	bool setMeta(vector<unsigned>& dists, unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q, bool cplex);
-	
+	bool scheduleAsEarly(vector<unsigned>& starts, bool cplex);
 
 		//@return: starts
-	vector<unsigned> genSchedule(bool cplex);
+	vector<unsigned> genSchedule(unsigned schedulerType, bool cplex);
 
-	bool verifySchedule(bool cplex);
+	bool verifySchedule(unsigned schedulerType, bool cplex);
 
-	void printPenalties();
+	void printPenalties(unsigned schedulerType);
 
-	void topoWalk( unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q );
+	bool topoWalk( vector<unsigned>& indeg, vector<unsigned>& Q );
 
 	void updateStrength(vector<unsigned>& lateCands, double & pS, double & hS );
 
@@ -114,7 +113,7 @@ public:
 		
 	void forcedDelay(vector<unsigned> & starts,vector<unsigned>& lateCands, unsigned & op);
 
-	void schedule(vector<unsigned>& starts, unsigned& lastOp, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q );
+	bool scheduleDelaying(vector<unsigned>& starts, bool cplex);
 #ifndef NDEBUG
 	bool isAlloced() const;
 
