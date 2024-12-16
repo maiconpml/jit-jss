@@ -8,6 +8,7 @@
 #include "Settings.hpp"
 #include "Utilities.hpp"
 #include "State.hpp"
+#include "Parameters.hpp"
 
 using namespace chrono;
 
@@ -83,13 +84,13 @@ public:
 
 namespace Tabu {
 
-	void nsp(State& theState, unsigned& lastOp, TabuList& tabuList, vector<pair<unsigned, unsigned>>& cands, double aspiration, vector<unsigned>& dists, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q, vector<unsigned>& heads, vector<unsigned>& tails, bool lbOrder, bool cplex);
+	void nsp(State& theState, TabuList& tabuList, vector<pair<unsigned, unsigned>>& cands, double aspiration, vector<unsigned>& dists, vector<unsigned>& indeg, vector<unsigned>& Q, unsigned schedulerType, bool cplex);
 
 	//@return: is optimal?
 	//printWhenBetter use 0 to not print. will print preString makes seconds (according to tpSTart) d 
-	bool evolveTabu(State& theState, unsigned tenure, unsigned initialjumpLimit, unsigned decreaseDivisor, unsigned bjSize, const high_resolution_clock::time_point& tpStart, vector<unsigned>& dists, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q, const unsigned maxD, const unsigned maxC, const double lowerBound, unsigned maxMillisecs, unsigned printWhenBetter, const string& preString, vector<unsigned>& heads, vector<unsigned>& tails, bool timeLog, bool lbOrder);
+	bool evolveTabu(State& theState, const Parameters& param, const high_resolution_clock::time_point& tpStart, vector<unsigned>& dists, vector<unsigned>& indeg, vector<unsigned>& Q);
 	
-	void nosmuTabu(const string& instPath, const string& name, unsigned tenure, unsigned initialjumpLimit, unsigned jumpLimitDecrease, unsigned bjSize, unsigned maxD, unsigned maxC, unsigned startType, unsigned maxMillisecs, bool timeLog);
+	void tabu(Parameters& param);
 }
 
 

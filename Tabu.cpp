@@ -3,20 +3,22 @@
 
 #include "Tabu.hpp"
 
-void Tabu::nsp(State& theState, unsigned& lastOp, TabuList& tabuList, vector<pair<unsigned, unsigned>>& cands, double aspiration, vector<unsigned>& dists, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q, vector<unsigned>& heads, vector<unsigned>& tails, bool lbOrder, bool cplex) {
+void Tabu::nsp(State& theState, TabuList& tabuList, vector<pair<unsigned, unsigned>>& cands, double aspiration, vector<unsigned>& starts, vector<unsigned>& indeg, vector<unsigned>& Q, unsigned schedulerType, bool cplex) {
 #ifndef NDEBUG
 	assert(!cands.empty());
-	assert(dists.size() == inst.O);
-	assert(prev.size() == inst.O);
+	assert(starts.size() == inst.O);
 	assert(indeg.size() == inst.O);
 	assert(Q.size() == inst.O);
 	State testState = theState;
 #endif
+	high_resolution_clock::time_point tpStart;
 	bool cycle;
 	unsigned o1;
 	unsigned o2;
 	vector<bool> stillToTestCandPos(cands.size(), true);
 	vector<pair<unsigned, unsigned>> candVisitOrder(cands.size());
+	vector<unsigned> heads(inst.O);
+	vector<unsigned> tails(inst.O);
 
 	unsigned pPos;
 
@@ -50,15 +52,10 @@ void Tabu::nsp(State& theState, unsigned& lastOp, TabuList& tabuList, vector<pai
 		candVisitOrder[curCandIndex].first = theState.swapLowerBound(cands[curCandIndex].first, cands[curCandIndex].second, heads, tails);
 		candVisitOrder[curCandIndex].second = curCandIndex;
 	}
-	if (lbOrder)
-		sort(candVisitOrder.begin(), candVisitOrder.end());
 
 	//unforbidden moves
 	//for(unsigned pPos=0; pPos<cands.size(); pPos++) {
 	for (unsigned curVisitOrderI = 0; curVisitOrderI < candVisitOrder.size(); curVisitOrderI++) {
-
-		if (lbOrder && candVisitOrder[curVisitOrderI].first >= chosenPenalties)
-			break;
 
 		pPos = candVisitOrder[curVisitOrderI].second;
 		// changed 
@@ -73,10 +70,15 @@ void Tabu::nsp(State& theState, unsigned& lastOp, TabuList& tabuList, vector<pai
 			theState.swap(o1, o2);
 			assert(theState.verify());
 
-			cycle = theState.setMeta(dists, lastOp, prev, indeg, Q, cplex);
-			//assert( ! cycle);
-
-
+			if (schedulerType == 1) {
+				cycle = theState.scheduleAsEarly(starts, cplex);
+			}
+			else if (schedulerType == 2) {
+				cycle = theState.scheduleDelaying(starts, cplex);
+			}
+			else {
+				theState.scheduleCplex(starts, cplex);
+			}
 
 			if (theState.penalties < chosenPenalties && !cycle) {
 				chosenPenalties = theState.penalties;
@@ -95,9 +97,6 @@ void Tabu::nsp(State& theState, unsigned& lastOp, TabuList& tabuList, vector<pai
 	//for(unsigned pPos=0; pPos<cands.size(); pPos++) {
 	for (unsigned curVisitOrderI = 0; curVisitOrderI < candVisitOrder.size(); curVisitOrderI++) {
 
-		if (lbOrder && candVisitOrder[curVisitOrderI].first >= chosenPenalties)
-			break;
-
 		pPos = candVisitOrder[curVisitOrderI].second;
 
 		if (stillToTestCandPos[pPos]) {
@@ -111,8 +110,15 @@ void Tabu::nsp(State& theState, unsigned& lastOp, TabuList& tabuList, vector<pai
 			theState.swap(o1, o2);
 			assert(theState.verify());
 
-			cycle = theState.setMeta(dists, lastOp, prev, indeg, Q, cplex);
-			//assert( ! cycle);
+			if (schedulerType == 1) {
+				cycle = theState.scheduleAsEarly(starts, cplex);
+			}
+			else if (schedulerType == 2) {
+				cycle = theState.scheduleDelaying(starts, cplex);
+			}
+			else {
+				theState.scheduleCplex(starts, cplex);
+			}
 
 			//aspiration
 			if (theState.penalties < aspiration && theState.penalties < chosenPenalties && !cycle) {
@@ -158,53 +164,53 @@ void Tabu::nsp(State& theState, unsigned& lastOp, TabuList& tabuList, vector<pai
 		tabuList.insert(oldestO1, oldestO2);
 		cands.erase(cands.begin() + oldestFnpSwapPos);
 	}
+	if (schedulerType == 1) {
 #ifndef NDEBUG
 	cycle =
 #endif
-		theState.setMeta(dists, lastOp, prev, indeg, Q, cplex);
+		theState.scheduleAsEarly(starts, cplex);
+	}
+	else if (schedulerType == 2) {
+#ifndef NDEBUG
+		cycle =
+#endif
+		theState.scheduleDelaying(starts, cplex);
+	}
+	else {
+
+		theState.scheduleCplex(starts, cplex);
+	}
 	assert(!cycle);
 }
 
 //@return: is optimal?
 //printWhenBetter use 0 to not print. will print preString makes seconds (according to tpSTart) d 
-bool Tabu::evolveTabu(State& theState, unsigned tenure, unsigned initialjumpLimit, unsigned decreaseDivisor, unsigned bjSize, const high_resolution_clock::time_point& tpStart, vector<unsigned>& dists, vector<unsigned>& prev, vector<unsigned>& indeg, vector<unsigned>& Q, const unsigned maxD, const unsigned maxC, const double lowerBound, unsigned maxMillisecs, unsigned printWhenBetter, const string& preString, vector<unsigned>& heads, vector<unsigned>& tails, bool timeLog, bool lbOrder) {
+bool Tabu::evolveTabu(State& theState, const Parameters& param, const high_resolution_clock::time_point& tpStart, vector<unsigned>& starts, vector<unsigned>& indeg, vector<unsigned>& Q) {
 #ifndef NDEBUG
 	bool cycle;
 #endif
-	unsigned lastOp;
 #ifndef NDEBUG
 	cycle =
 #endif
-		theState.setMeta(dists, lastOp, prev, indeg, Q, true);
+	//theState.scheduleAsEarly(starts, true);
+	theState.scheduleDelaying(starts, true);
 	assert(!cycle);
-	assert(theState.penalties >= lowerBound);
+	assert(theState.penalties >= 0);
 
-	if (theState.penalties < printWhenBetter) {
-		if (timeLog) {
-			resultList.push_back(preString + unsigStr(theState.penalties) + " " + doubleStr((duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count()) / 1000.0) + " d");
-		}
-	}
-
-	if (theState.penalties == lowerBound)
+	if (theState.penalties == 0)
 		return true;
 
 	State curState = theState;
 	State oldState;
 
-	vector<unsigned> jobBb;
-	jobBb.reserve(inst.O);
-	vector<unsigned> machBb;
-	machBb.reserve(inst.O);
-	vector<unsigned> critic;
-	critic.reserve(inst.O);
 	vector<vector<unsigned>> criticOper(inst.O);
 
 	bool penaltiesCycleDetected;
-	vector<int> oldValues(maxD, -1);
+	vector<int> oldValues(param.maxD, -1);
 	unsigned posCurPenalties = 0;
 	unsigned cycleLastPos = 0;
 	unsigned cycleL = 0;
-	const unsigned maxLen = maxD * maxC;
+	const unsigned maxLen = param.maxD * param.maxC;
 
 	vector<pair<unsigned, unsigned>> cands;
 	cands.reserve(inst.O);
@@ -213,38 +219,35 @@ bool Tabu::evolveTabu(State& theState, unsigned tenure, unsigned initialjumpLimi
 	unsigned tabuIter = 0;
 	unsigned noImproveIters = 0;
 	unsigned trySwapNeigh = 0;
-	unsigned curJumpLimit = initialjumpLimit;
+	unsigned curJumpLimit = param.initialjumpLimit;
 	bool jumped = false;
 	bool newBestFound = true;
-
-	bool emptyNeighbourhood = false;
+	bool cplex = false;
+	bool emptyneighborhood = false;
 
 	// 1 initiatizations
 	TabuList oldTabuList;
-	TabuList tabuList(tenure);
+	TabuList tabuList(param.tenure);
 	//unsigned lowerBound = inst.lowerBoundTkz(indeg, Q);
-	JumpList jumpList(bjSize);
-	bool cplex = true;
+	JumpList jumpList(param.bjSize);
 
 	// 2 main loop
-	while (maxMillisecs > duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count()) {
+	while (param.maxMillisecs > duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count()) {
 		tabuIter++;
 		noImproveIters++;
+		//cout << tabuIter << endl;
 
 		//STEP Checking for cycles
-		penaltiesCycleDetected = State::detectRepeat(oldValues, posCurPenalties, cycleLastPos, cycleL, curState.penalties, newBestFound, maxD, maxLen); //PENAL alt makes
+		penaltiesCycleDetected = State::detectRepeat(oldValues, posCurPenalties, cycleLastPos, cycleL, curState.penalties, newBestFound, param.maxD, maxLen); //PENAL alt makes
 
 		// STEP get trio from jump list or compute cands
-		if ((curJumpLimit < noImproveIters) || penaltiesCycleDetected || emptyNeighbourhood) {//JUMPING
+		if ((curJumpLimit < noImproveIters) || penaltiesCycleDetected || emptyneighborhood) {//JUMPING
 			assert(!newBestFound);
 
 			jumped = true;
-			//if(curJumpLimit > jumpLimitDecrease) 
-			//curJumpLimit -= jumpLimitDecrease;
-			curJumpLimit -= (curJumpLimit / decreaseDivisor);
-			//cout << curJumpLimit << endl;
+			curJumpLimit -= (curJumpLimit / param.decreaseDivisor);
 
-			emptyNeighbourhood = false;
+			emptyneighborhood = false;
 
 			noImproveIters = 0;
 
@@ -257,6 +260,7 @@ bool Tabu::evolveTabu(State& theState, unsigned tenure, unsigned initialjumpLimi
 				assert(!cands.empty());
 			}
 			else { //Stop -> no more states in jump list
+				cout << tabuIter << endl;
 				return false;
 			}
 		}
@@ -264,37 +268,18 @@ bool Tabu::evolveTabu(State& theState, unsigned tenure, unsigned initialjumpLimi
 			jumped = false;
 			cands.clear();
 
-
-
-			//				State::computeCritic(critic, lastOp, prev);
-			////#ifndef NDEBUG
-			////				assert( ! critic.empty());
-			////				assert(critic.size() < inst.O);
-			////				testMakes = 0;
-			////				for(unsigned pos=0; pos<critic.size(); pos++)
-			////					testMakes += inst.P[critic[pos]];
-			////				assert(testMakes == curState.makes);
-			////				for(unsigned pos=0; pos<critic.size()-1; pos++)
-			////					assert(curState.job[critic[pos]] == critic[pos+1]    ||    curState.mach[critic[pos]] == critic[pos+1]);
-			////#endif
-			//				State::fillCandidatesN5(cands, jobBb, machBb, critic);
-
-							//State::fillCandidatesAllSwaps(cands, curState.mach);
-
 			if (trySwapNeigh == 1) {
-				State::fillCandidatesAllSwaps(cands, curState.mach);
+				State::fillCandidatesAllSwaps(cands, curState.startTime, curState._job, curState._mach, curState.mach);
 			}
 			else if (curState.lPenalty <= theState.penalties / 4) {
 				vector<unsigned> earlBlock;
 				curState.getEarlBlock(earlBlock);
 				curState.schedulerCplexRelax(earlBlock);
 				cplex = true;
-				State::fillCandidatesCriticTotal(cands, curState.startTime, curState._job, curState._mach);
+				State::fillCandidatesCriticTotal(cands, curState.startTime, curState._job, curState._mach, curState.mach);
 			}
 			else {
-				//State::findCriticOper(criticOper, curState.startTime, curState._job, curState._mach);
-				//State::fillCandidatesCriticOper(cands, criticOper);
-				State::fillCandidatesCriticTotal(cands, curState.startTime, curState._job, curState._mach);
+				State::fillCandidatesCriticTotal(cands, curState.startTime, curState._job, curState._mach, curState.mach);
 			}
 #ifdef PRINT_NEIGHBOURS_NB
 			neigh.push_back(cands.size());
@@ -308,20 +293,11 @@ bool Tabu::evolveTabu(State& theState, unsigned tenure, unsigned initialjumpLimi
 			oldTabuList = tabuList;
 		}
 
-#ifdef COUNT_STEPS
-		numSteps++;
-		currentShownSeconds = (duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count()) / 1000;
-		if (currentShownSeconds > shownSeconds) {
-			shownSeconds = currentShownSeconds;
-			cout << "TIME" << preString << " " << shownSeconds << " " << numSteps << endl;
-		}
-#endif //COUNT_STEPS
-
 		//STEP Go to neighbour			
 		if (!cands.empty())
-			nsp(curState, lastOp, tabuList, cands, theState.penalties, dists, prev, indeg, Q, heads, tails, lbOrder, cplex);
+			nsp(curState, tabuList, cands, theState.penalties, starts, indeg, Q, param.schedulerType, cplex);
 		else
-			emptyNeighbourhood = true;
+			emptyneighborhood = true;
 
 		//STEP last iter new best was found? store oldState with paths not taken
 		if (newBestFound) {
@@ -338,17 +314,12 @@ bool Tabu::evolveTabu(State& theState, unsigned tenure, unsigned initialjumpLimi
 		//STEP new best ??
 		if (curState.penalties < theState.penalties) {
 
-			if (curState.penalties < printWhenBetter)
-				if (timeLog) {
-					resultList.push_back(preString + unsigStr(curState.penalties) + " " + doubleStr((duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count()) / 1000.0) + " d");
-				}
-
 			trySwapNeigh = 0;
 			noImproveIters = 0;
 			theState = curState;
-			curJumpLimit = initialjumpLimit;
-			assert(curState.penalties >= lowerBound);
-			if (curState.penalties == lowerBound) //Stop -> Optimal
+			curJumpLimit = param.initialjumpLimit;
+			assert(curState.penalties >= 0);
+			if (curState.penalties == 0) //Stop -> Optimal
 				return true;
 
 			newBestFound = true;
@@ -361,65 +332,65 @@ bool Tabu::evolveTabu(State& theState, unsigned tenure, unsigned initialjumpLimi
 			else trySwapNeigh += 1;
 		}
 
-		//if (cplex) cplex = false;
+		if (cplex) cplex = false;
 	}//end while
 
-	assert(maxMillisecs <= duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count());
+	cout << tabuIter << endl;
+
+	assert(param.maxMillisecs <= duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count());
 
 	return false;
 }
 
-void Tabu::nosmuTabu(const string& instPath, const string& name, unsigned tenure, unsigned initialjumpLimit, unsigned jumpLimitDecrease, unsigned bjSize, unsigned maxD, unsigned maxC, unsigned startType, unsigned maxMillisecs, bool timeLog) {
+void Tabu::tabu(Parameters& param) {
 
 	high_resolution_clock::time_point tpStart = high_resolution_clock::now();
 
-	inst.parse(instPath);
+	inst.parse(param.instPath);
 
-	vector<unsigned> dists(inst.O);
-	vector<unsigned> prev(inst.O);
+	vector<unsigned> starts(inst.O);
 	vector<unsigned> indeg(inst.O);
 	vector<unsigned> Q(inst.O);
-	vector<unsigned> heads(inst.O);
-	vector<unsigned> tails(inst.O);
-	vector<unsigned> invertedQ(inst.O);
-	vector<bool> reach(inst.O);
 
 	State theState;
 	theState.alloc();
-	bool bigJobFirst = false;
 
 	unsigned lowerBound = inst.lowerBoundTkz(indeg, Q);
 
-	if (startType == GT)
-		theState.gifflerThompson();
-	else if (startType == INSA_START)
-		theState.insaPsp(bigJobFirst, indeg, Q, heads, tails, invertedQ, reach);
-	else
-		throw errorText("Invalid start option.", "Tabu.hpp", "nosmuTabu");
-
-	unsigned lastOp;
-	theState.setMeta(dists, lastOp, prev, indeg, Q, true);
+	theState.gifflerThompson();
+	
+	theState.scheduleAsEarly(starts, true);
+	
+	
+	
 
 #ifdef PRINT_ONLY_IS
-
-	cout << instPath << " " << lowerBound << " ";
+	cout << param.instPath << " " << lowerBound << " ";
 	theState.printPenalties();
 	return;
 #endif //PRINT_ONLY_IS
 
 	theState.millisecsFound = duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count();
 
-	evolveTabu(theState, tenure, initialjumpLimit, jumpLimitDecrease, bjSize, tpStart, dists, prev, indeg, Q, maxD, maxC, 0, maxMillisecs, UINT_MAX, "", heads, tails, timeLog, false);
+	evolveTabu(theState, param, tpStart, starts, indeg, Q);
 
-	theState.setMeta(dists, lastOp, prev, indeg, Q, true);
+	if (param.schedulerType == 1) {
+		theState.scheduleAsEarly(starts, true);
+	}
+	else if (param.schedulerType == 2) {
+		theState.scheduleDelaying(starts, true);
+	}
+	else {
+		theState.scheduleCplex(starts, true);
+	}
 
 	theState.millisecsFound = duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count();
 
-	if (!theState.verifySchedule(true))
+	if (!theState.verifySchedule(param.schedulerType, true))
 		throw errorText(theState.toString() + "\n\t\tBad schedule !!!!!", "", "");
 
 #ifdef PRINT_DEFAULT
-	cout << instPath << " " << lowerBound << " ";
+	cout << param.instPath << " " << lowerBound << " ";
 #endif //PRINT_ONLY_RESULT
-	theState.printPenalties();
+	theState.printPenalties(param.schedulerType);
 }

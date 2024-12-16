@@ -54,46 +54,50 @@ int main(int argc, char *argv[]) {
 			return 0;
 		}
 
+		Parameters param;
+
 		// (3) initialize params
-		const string instPath = vm["instPath"].as<string>();
-		string name = vm["name"].as<string>();
-		double maxSecs = vm["maxSecs"].as<double>();
-		const unsigned seed = vm["seed"].as<unsigned>();
-		const unsigned tenure = vm["tenure"].as<unsigned>();
-		const unsigned initialjumpLimit = vm["initialjumpLimit"].as<unsigned>();
-		const unsigned decreaseDivisor = vm["decreaseDivisor"].as<unsigned>();
-		const unsigned bjSize = vm["bjSize"].as<unsigned>();
-		const unsigned maxD = vm["maxD"].as<unsigned>();
-		const unsigned maxC = vm["maxC"].as<unsigned>();
+		param.instPath = vm["instPath"].as<string>();
+		param.name = vm["name"].as<string>();
+		unsigned maxSecs = vm["maxSecs"].as<double>();
+		param.seed = vm["seed"].as<unsigned>();
+		param.tenure = vm["tenure"].as<unsigned>();
+		param.initialjumpLimit = vm["initialjumpLimit"].as<unsigned>();
+		param.decreaseDivisor = vm["decreaseDivisor"].as<unsigned>();
+		param.bjSize = vm["bjSize"].as<unsigned>();
+		param.maxD = vm["maxD"].as<unsigned>();
+		param.maxC = vm["maxC"].as<unsigned>();
 		//const double acceptAlpha = vm["acceptAlpha"].as<double>();
-		const bool timeLog = vm["timeLog"].as<bool>();
-		const double scaleTime = vm["scaleTime"].as<double>();
-		const string searchTypeStr = vm["searchType"].as<string>();
-		const bool onlyMakesLowerBound = vm["onlyMakesLowerBound"].as<bool>();
-		const bool cplex = vm["cplex"].as<bool>();
-		const bool setMeta = vm["setMeta"].as<bool>();
-
-
-		if(onlyMakesLowerBound) {
-			inst.parse(instPath);
-
-			cout << name << " " << inst.lowerBoundTkz() << endl;
+		param.timeLog = vm["timeLog"].as<bool>();
+		param.scaleTime = vm["scaleTime"].as<double>();
+		param.searchTypeStr = vm["searchType"].as<string>();
+		param.onlyMakesLowerBound = vm["onlyMakesLowerBound"].as<bool>();
+		param.schedulerType = vm["schedulerType"].as<unsigned>();
+		if (param.schedulerType < 1 || param.schedulerType > 3) {
+			cout << "Invalid type for schedulerType" << endl;
 			return 0;
 		}
-		
+
+		if(param.onlyMakesLowerBound) {
+			inst.parse(param.instPath);
+
+			cout << param.name << " " << inst.lowerBoundTkz() << endl;
+			return 0;
+		}
 
 		// (3.1) adjusting time
-		maxSecs *= scaleTime;
-	
+		maxSecs *= param.scaleTime;
+		param.maxMillisecs = maxSecs * 1000;
+		
 		//(4) vesrbose if in DEBUG
 #ifndef NDEBUG
 		cout << "DEBUG MODE" << endl;
-		cout << "instPath:" << instPath << endl;
-		cout << "maxSecs: " << maxSecs << "   seed: " << seed << "   tenure: " << tenure << "   initialjumpLimit: " << initialjumpLimit  << "   decreaseDivisor: " << decreaseDivisor << "   bjSize: " << bjSize << "   maxD: " << maxD << "   maxC: " << maxC << "   timeLog: " << (timeLog ? "Y" : "n")  << "   scaleTime: " << scaleTime << endl;
+		cout << "instPath:" << param.instPath << endl;
+		cout << "maxSecs: " << maxSecs << "   seed: " << param.seed << "   tenure: " << param.tenure << "   initialjumpLimit: " << param.initialjumpLimit  << "   decreaseDivisor: " << param.decreaseDivisor << "   bjSize: " << param.bjSize << "   maxD: " << param.maxD << "   maxC: " << param.maxC << "   timeLog: " << (param.timeLog ? "Y" : "n")  << "   scaleTime: " << param.scaleTime << endl;
 #endif
 
 		//(5) execute
-		Tabu::nosmuTabu(instPath, name, tenure, initialjumpLimit, decreaseDivisor, bjSize, maxD, maxC, GT, 1000*maxSecs, timeLog);
+		Tabu::tabu(param);
 		
 	}catch(const string & e) {
 		cout << e << endl;
