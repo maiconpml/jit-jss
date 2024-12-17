@@ -267,7 +267,7 @@ bool Tabu::evolveTabu(State& theState, const Parameters& param, const high_resol
 			if (trySwapNeigh == param.useSwapAllNIter) {
 				State::fillCandidatesAllSwaps(cands, curState.startTime, curState._job, curState._mach, curState.mach);
 			}
-			else if (curState.lPenalty <= theState.penalties / 4) {
+			else if (curState.lPenalty <= theState.penalties * param.useCplexRelaxRatio) {
 				curState.schedulerCplexRelax(cands, curState.startTime, curState._job, curState._mach, curState.mach);
 				cplex = true;
 			}

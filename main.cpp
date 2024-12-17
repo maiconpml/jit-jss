@@ -45,6 +45,7 @@ int main(int argc, char *argv[]) {
 			("onlyMakesLowerBound", po::value<bool>()->default_value(false), "To get lower bound values")
 			("schedulerType", po::value<unsigned>()->default_value(1), "Type of scheduler used: 1 - early as possible (fastest), 2 - delaying when possible (better schedule but slower), 3 - 1 and 2 mixed (1 when tard penalties are dominating and 2 when earl penalties are dominating, 4 - cplex (slowest but optimal)")
 			("useSwapAllNIter", po::value<unsigned>()->default_value(1), "Number of iterations without improvement to use neighborhood Swap All")
+			("useCplexRelaxRatio", po::value<double>()->default_value(0.25), "Ratio between earliness penalty and tardiness penalty to use neighborhood Cplex Relax")
 			;
 		po::positional_options_description pod;
 		pod.add("instPath", 1); //instance is positional as well
@@ -77,6 +78,7 @@ int main(int argc, char *argv[]) {
 		param.timeLog = vm["timeLog"].as<bool>();
 		param.scaleTime = vm["scaleTime"].as<double>();
 		param.onlyMakesLowerBound = vm["onlyMakesLowerBound"].as<bool>();
+		param.useCplexRelaxRatio = vm["useCplexRelaxRatio"].as<double>();
 		param.useSwapAllNIter = vm["useSwapAllNIter"].as<unsigned>();
 		param.schedulerType = vm["schedulerType"].as<unsigned>();
 		if (param.schedulerType < 1 || param.schedulerType > 4) {

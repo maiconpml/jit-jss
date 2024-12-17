@@ -19,5 +19,6 @@ public:
 	double scaleTime;
 	bool onlyMakesLowerBound;
 	unsigned schedulerType;
+	double useCplexRelaxRatio;
 	unsigned useSwapAllNIter;
 };
