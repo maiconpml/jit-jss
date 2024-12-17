@@ -38,7 +38,6 @@ void Tabu::nsp(State& theState, TabuList& tabuList, vector<pair<unsigned, unsign
 	cycle =
 #endif
 		theState.compTailsComplete(tails, indeg, Q);
-	//theState.compTails(tails, indeg, Q);
 	assert(!cycle);
 
 #ifndef NDEBUG
@@ -186,7 +185,6 @@ void Tabu::nsp(State& theState, TabuList& tabuList, vector<pair<unsigned, unsign
 }
 
 //@return: is optimal?
-//printWhenBetter use 0 to not print. will print preString makes seconds (according to tpSTart) d 
 bool Tabu::evolveTabu(State& theState, const Parameters& param, const high_resolution_clock::time_point& tpStart, vector<unsigned>& starts, vector<unsigned>& indeg, vector<unsigned>& Q) {
 #ifndef NDEBUG
 	bool cycle;
@@ -270,11 +268,8 @@ bool Tabu::evolveTabu(State& theState, const Parameters& param, const high_resol
 				State::fillCandidatesAllSwaps(cands, curState.startTime, curState._job, curState._mach, curState.mach);
 			}
 			else if (curState.lPenalty <= theState.penalties / 4) {
-				vector<unsigned> earlBlock;
-				curState.getEarlBlock(earlBlock);
-				curState.schedulerCplexRelax(earlBlock);
+				curState.schedulerCplexRelax(cands, curState.startTime, curState._job, curState._mach, curState.mach);
 				cplex = true;
-				State::fillCandidatesCriticTotal(cands, curState.startTime, curState._job, curState._mach, curState.mach);
 			}
 			else {
 				State::fillCandidatesCriticTotal(cands, curState.startTime, curState._job, curState._mach, curState.mach);
@@ -283,7 +278,7 @@ bool Tabu::evolveTabu(State& theState, const Parameters& param, const high_resol
 			neigh.push_back(cands.size());
 #endif // PRINT_NEIGHBOURS_NB
 		}
-		assert(!cands.empty());
+		assert(!cands.empty() || cplex);
 
 		if (newBestFound) {
 			assert(!jumped);
