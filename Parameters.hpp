@@ -17,7 +17,6 @@ public:
 	unsigned maxC;
 	bool timeLog;
 	double scaleTime;
-	string searchTypeStr;
 	bool onlyMakesLowerBound;
 	unsigned schedulerType;
 };

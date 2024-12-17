@@ -42,7 +42,6 @@ int main(int argc, char *argv[]) {
 			//("acceptAlpha", po::value<double>()->default_value(0.1466), "For Metropolis acceptance criterion")
 			("timeLog", po::value<bool>()->default_value(true), "Show time of each new best sollution found")
 			("scaleTime", po::value<double>()->default_value(1.0), "Change received time, for testing. (JSP)")
-			("searchType", po::value<string>()->default_value("iteratedGreedy"), "Type of search: iteratedGreedy - tabuSearch")
 			("onlyMakesLowerBound", po::value<bool>()->default_value(false), "To get lower bound values")
 			("schedulerType", po::value<unsigned>()->default_value(1), "Type of scheduler used: 1 - early as possible (fastest), 2 - delaying when possible (better schedule but slower), 3 - 1 and 2 mixed (1 when tard penalties are dominating and 2 when earl penalties are dominating, 4 - cplex (slowest but optimal)")
 			;
@@ -76,7 +75,6 @@ int main(int argc, char *argv[]) {
 		//const double acceptAlpha = vm["acceptAlpha"].as<double>();
 		param.timeLog = vm["timeLog"].as<bool>();
 		param.scaleTime = vm["scaleTime"].as<double>();
-		param.searchTypeStr = vm["searchType"].as<string>();
 		param.onlyMakesLowerBound = vm["onlyMakesLowerBound"].as<bool>();
 		param.schedulerType = vm["schedulerType"].as<unsigned>();
 		if (param.schedulerType < 1 || param.schedulerType > 4) {
