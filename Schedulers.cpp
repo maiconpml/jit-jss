@@ -109,17 +109,23 @@ bool State::scheduleDelaying(vector<unsigned>& starts) {
 	vector<unsigned> indeg(inst.O);
 	vector<unsigned> Q(inst.O);
 	double pushStrength, holdStrength;
+
 	fill(starts.begin(), starts.end(), 0);
+
 	if (topoWalk(indeg, Q)) return true;
 	ops = Q;
 	reverse(ops.begin(), ops.end());
+
 	for (unsigned i = 1; i < ops.size(); i++) {
-		lateCands[ops[i]] = 1; // 1- late 2- early/on schedule
-		heads.push_back(ops[i]); // first earlies operations 
+		lateCands[ops[i]] = 1;
+		heads.push_back(ops[i]);
+
 		if ((job[ops[i]] && (starts[job[ops[i]]] < inst.P[ops[i]] || starts[job[ops[i]]] == 0)) || (mach[ops[i]] && (starts[mach[ops[i]]] < inst.P[ops[i]] || starts[mach[ops[i]]] == 0))) {
 			forcedDelay(starts, lateCands, ops[i]);
 		}
+
 		updateStrength(lateCands, pushStrength, holdStrength);
+
 		while (pushStrength > holdStrength) {
 			delayTime = calcDelayTime(starts, lateCands, limited);
 			delay(starts, lateCands, delayTime);
@@ -131,34 +137,38 @@ bool State::scheduleDelaying(vector<unsigned>& starts) {
 		fill(limited.begin(), limited.end(), 0);
 		heads.clear();
 	}
-	//verifySchedule(false);
-	for (unsigned times = 0; times < 0; ++times) {
-		for (unsigned i = 1; i < ops.size(); i++) {
-			if (starts[ops[i]] + inst.P[ops[i]] >= inst.deadlines[ops[i]]) {
-				lateCands[ops[i]] = 2;
-			}
-			else {
-				lateCands[ops[i]] = 1; // 1- late 2- early/on schedule
-			}
-			heads.push_back(ops[i]); // first earlies operations 
-			if ((job[ops[i]] && starts[job[ops[i]]] < inst.P[ops[i]]) || (mach[ops[i]] && starts[mach[ops[i]]] < inst.P[ops[i]])) {
-				forcedDelay(starts, lateCands, ops[i]);
-			}
-			limited[ops[i]] = 1;
-			update(lateCands, limited, heads, starts);
-			updateStrength(lateCands, pushStrength, holdStrength);
-			while (pushStrength > holdStrength) {
-				delayTime = calcDelayTime(starts, lateCands, limited);
-				delay(starts, lateCands, delayTime);
-				update(lateCands, limited, heads, starts);
-				updateStrength(lateCands, pushStrength, holdStrength);
-			}
+	
+	//for (unsigned times = 0; times < 0; ++times) {
+	//	for (unsigned i = 1; i < ops.size(); i++) {
 
-			fill(lateCands.begin(), lateCands.end(), 0);
-			fill(limited.begin(), limited.end(), 0);
-			heads.clear();
-		}
-	}
+	//		if (starts[ops[i]] + inst.P[ops[i]] >= inst.deadlines[ops[i]]) {
+	//			lateCands[ops[i]] = 2;
+	//		}
+	//		else {
+	//			lateCands[ops[i]] = 1; // 1- late 2- early/on schedule
+	//		}
+
+	//		heads.push_back(ops[i]); // first earlies operations 
+	//		if ((job[ops[i]] && starts[job[ops[i]]] < inst.P[ops[i]]) || (mach[ops[i]] && starts[mach[ops[i]]] < inst.P[ops[i]])) {
+	//			forcedDelay(starts, lateCands, ops[i]);
+	//		}
+
+	//		limited[ops[i]] = 1;
+	//		update(lateCands, limited, heads, starts);
+	//		updateStrength(lateCands, pushStrength, holdStrength);
+
+	//		while (pushStrength > holdStrength) {
+	//			delayTime = calcDelayTime(starts, lateCands, limited);
+	//			delay(starts, lateCands, delayTime);
+	//			update(lateCands, limited, heads, starts);
+	//			updateStrength(lateCands, pushStrength, holdStrength);
+	//		}
+
+	//		fill(lateCands.begin(), lateCands.end(), 0);
+	//		fill(limited.begin(), limited.end(), 0);
+	//		heads.clear();
+	//	}
+	//}
 	makes = 0;
 	for (unsigned i = 1; i < inst.O; ++i) {
 		if (starts[i] + inst.P[i] > makes) makes = starts[i] + inst.P[i];
