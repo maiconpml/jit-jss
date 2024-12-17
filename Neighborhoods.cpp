@@ -5,7 +5,7 @@
 
 #include <queue>
 
-// set neighbors candidates with operations critical path
+// set candidates neighbors with late operations critical path
 void State::fillCandidatesCriticTotal(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& starts, vector<unsigned>& _job, vector<unsigned>& _mach, vector<unsigned>& mach) {
 
 	for (unsigned op = 1; op < inst.O; ++op) {
@@ -58,8 +58,8 @@ void State::fillCandidatesAllSwaps(vector<pair<unsigned, unsigned>>& cands, vect
 	}
 }
 
-/* Schedule operations relaxing machine precedence of operations in relaxBlock*/
-void State::schedulerCplexRelax(vector<unsigned>& relaxBlock) {
+/* Schedule operations relaxing machine precedence of a block of early operations. Already selects the best neighbor*/
+void State::schedulerCplexRelax(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& starts, vector<unsigned>& _job, vector<unsigned>& _mach, vector<unsigned>& mach) {
 
 	vector<unsigned> auxJobs = inst.roots;
 	vector<vector<unsigned>> machOrder(inst.M, vector<unsigned>(0));
@@ -67,6 +67,9 @@ void State::schedulerCplexRelax(vector<unsigned>& relaxBlock) {
 
 	dists.clear();
 	dists.push_back(0);
+
+	vector<unsigned> relaxBlock;
+	getEarlBlock(relaxBlock);
 
 	IloEnv jitEnv;
 	IloModel jitModel(jitEnv);

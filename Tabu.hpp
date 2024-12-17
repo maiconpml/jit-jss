@@ -84,11 +84,11 @@ public:
 
 namespace Tabu {
 
-	void nsp(State& theState, TabuList& tabuList, vector<pair<unsigned, unsigned>>& cands, double aspiration, vector<unsigned>& dists, vector<unsigned>& indeg, vector<unsigned>& Q, unsigned schedulerType, bool cplex);
+	void nsp(State& theState, TabuList& tabuList, vector<pair<unsigned, unsigned>>& cands, double aspiration, vector<unsigned>& starts, vector<unsigned>& indeg, vector<unsigned>& Q, unsigned schedulerType);
 
 	//@return: is optimal?
 	//printWhenBetter use 0 to not print. will print preString makes seconds (according to tpSTart) d 
-	bool evolveTabu(State& theState, const Parameters& param, const high_resolution_clock::time_point& tpStart, vector<unsigned>& dists, vector<unsigned>& indeg, vector<unsigned>& Q);
+	bool evolveTabu(State& theState, const Parameters& param, const high_resolution_clock::time_point& tpStart, vector<unsigned>& starts, vector<unsigned>& indeg, vector<unsigned>& Q);
 	
 	void tabu(Parameters& param);
 }

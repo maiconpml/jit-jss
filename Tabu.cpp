@@ -3,7 +3,7 @@
 
 #include "Tabu.hpp"
 
-void Tabu::nsp(State& theState, TabuList& tabuList, vector<pair<unsigned, unsigned>>& cands, double aspiration, vector<unsigned>& starts, vector<unsigned>& indeg, vector<unsigned>& Q, unsigned schedulerType, bool cplex) {
+void Tabu::nsp(State& theState, TabuList& tabuList, vector<pair<unsigned, unsigned>>& cands, double aspiration, vector<unsigned>& starts, vector<unsigned>& indeg, vector<unsigned>& Q, unsigned schedulerType) {
 #ifndef NDEBUG
 	assert(!cands.empty());
 	assert(starts.size() == inst.O);
@@ -70,14 +70,14 @@ void Tabu::nsp(State& theState, TabuList& tabuList, vector<pair<unsigned, unsign
 			theState.swap(o1, o2);
 			assert(theState.verify());
 
-			if (schedulerType == 1) {
-				cycle = theState.scheduleAsEarly(starts, cplex);
+			if (schedulerType == 3) {
+				cycle = theState.scheduleCplex(starts);
 			}
 			else if (schedulerType == 2) {
-				cycle = theState.scheduleDelaying(starts, cplex);
+				cycle = theState.scheduleDelaying(starts);
 			}
 			else {
-				theState.scheduleCplex(starts, cplex);
+				cycle = theState.scheduleAsEarly(starts);
 			}
 
 			if (theState.penalties < chosenPenalties && !cycle) {
@@ -110,14 +110,14 @@ void Tabu::nsp(State& theState, TabuList& tabuList, vector<pair<unsigned, unsign
 			theState.swap(o1, o2);
 			assert(theState.verify());
 
-			if (schedulerType == 1) {
-				cycle = theState.scheduleAsEarly(starts, cplex);
+			if (schedulerType == 3) {
+				cycle = theState.scheduleCplex(starts);
 			}
 			else if (schedulerType == 2) {
-				cycle = theState.scheduleDelaying(starts, cplex);
+				cycle = theState.scheduleDelaying(starts);
 			}
 			else {
-				theState.scheduleCplex(starts, cplex);
+				cycle = theState.scheduleAsEarly(starts);
 			}
 
 			//aspiration
@@ -164,21 +164,23 @@ void Tabu::nsp(State& theState, TabuList& tabuList, vector<pair<unsigned, unsign
 		tabuList.insert(oldestO1, oldestO2);
 		cands.erase(cands.begin() + oldestFnpSwapPos);
 	}
-	if (schedulerType == 1) {
+	if (schedulerType == 3) {
 #ifndef NDEBUG
-	cycle =
+		cycle =
 #endif
-		theState.scheduleAsEarly(starts, cplex);
+			theState.scheduleCplex(starts);
 	}
 	else if (schedulerType == 2) {
 #ifndef NDEBUG
 		cycle =
 #endif
-		theState.scheduleDelaying(starts, cplex);
+			theState.scheduleDelaying(starts);
 	}
 	else {
-
-		theState.scheduleCplex(starts, cplex);
+#ifndef NDEBUG
+		cycle =
+#endif
+			theState.scheduleAsEarly(starts);
 	}
 	assert(!cycle);
 }
@@ -192,8 +194,7 @@ bool Tabu::evolveTabu(State& theState, const Parameters& param, const high_resol
 #ifndef NDEBUG
 	cycle =
 #endif
-	//theState.scheduleAsEarly(starts, true);
-	theState.scheduleDelaying(starts, true);
+	theState.scheduleCplex(starts);
 	assert(!cycle);
 	assert(theState.penalties >= 0);
 
@@ -359,11 +360,17 @@ void Tabu::tabu(Parameters& param) {
 
 	theState.gifflerThompson();
 	
-	theState.scheduleAsEarly(starts, true);
+	if (param.schedulerType == 3) {
+		theState.scheduleCplex(starts);
+	}
+	else if (param.schedulerType == 2) {
+		theState.scheduleDelaying(starts);
+	}
+	else {
+		theState.scheduleAsEarly(starts);
+	}
 	
 	
-	
-
 #ifdef PRINT_ONLY_IS
 	cout << param.instPath << " " << lowerBound << " ";
 	theState.printPenalties();
@@ -374,15 +381,7 @@ void Tabu::tabu(Parameters& param) {
 
 	evolveTabu(theState, param, tpStart, starts, indeg, Q);
 
-	if (param.schedulerType == 1) {
-		theState.scheduleAsEarly(starts, true);
-	}
-	else if (param.schedulerType == 2) {
-		theState.scheduleDelaying(starts, true);
-	}
-	else {
-		theState.scheduleCplex(starts, true);
-	}
+	theState.scheduleCplex(starts);
 
 	theState.millisecsFound = duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count();
 

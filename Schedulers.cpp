@@ -3,7 +3,8 @@
 #include <ilcplex/cplex.h>
 #include <ilcplex/ilocplex.h>
 
-bool State::scheduleAsEarly(vector<unsigned>& starts, bool cplex) {
+// schedule operations as early as possible based on current sequence, return true if current sequence has a cycle
+bool State::scheduleAsEarly(vector<unsigned>& starts) {
 	assert(isAlloced());
 	assert(starts.size() == inst.O);
 
@@ -90,10 +91,6 @@ bool State::scheduleAsEarly(vector<unsigned>& starts, bool cplex) {
 		inst.calcPenalties(starts, ePenalty, lPenalty, operPenalties);
 		penalties = ePenalty + lPenalty;
 		startTime = starts;
-
-		if (cplex) {
-			scheduleCplex(starts, false);
-		}
 #ifdef SHIFT_OPERS
 		assert(penalties <= testPenalties);
 #endif //SHIFT_OPERS
@@ -102,7 +99,8 @@ bool State::scheduleAsEarly(vector<unsigned>& starts, bool cplex) {
 	return qAccess < inst.O - 1;
 }
 
-bool State::scheduleDelaying(vector<unsigned>& starts, bool cplex) {
+// schedule operations delaying when is possible to decrease penalties based on current sequence, return true if current sequence has a cycle
+bool State::scheduleDelaying(vector<unsigned>& starts) {
 	unsigned delayTime = 0;
 	vector<unsigned> limited(inst.O, 0);
 	vector<unsigned> heads;
@@ -113,10 +111,6 @@ bool State::scheduleDelaying(vector<unsigned>& starts, bool cplex) {
 	double pushStrength, holdStrength;
 	fill(starts.begin(), starts.end(), 0);
 	if (topoWalk(indeg, Q)) return true;
-	if (cplex) {
-		scheduleCplex(starts, false);
-		return false;
-	}
 	ops = Q;
 	reverse(ops.begin(), ops.end());
 	for (unsigned i = 1; i < ops.size(); i++) {
@@ -177,13 +171,19 @@ bool State::scheduleDelaying(vector<unsigned>& starts, bool cplex) {
 	return false;
 }
 
-void State::scheduleCplex(vector<unsigned>& starts, bool cplex) {
+// schedule with cplex solver based on current sequence, return true if current sequence has a cycle
+bool State::scheduleCplex(vector<unsigned>& starts) {
 
 	vector<unsigned> auxJobs = inst.roots;
 	vector<vector<unsigned>> machOrder(inst.M, vector<unsigned>(0));
 
 	starts.clear();
 	starts.push_back(0);
+
+	vector<unsigned> indeg(inst.O);
+	vector<unsigned> Q(inst.O);
+
+	if (topoWalk(indeg, Q)) return true;
 
 	IloEnv jitEnv;
 	IloModel jitModel(jitEnv);
@@ -254,4 +254,6 @@ void State::scheduleCplex(vector<unsigned>& starts, bool cplex) {
 	inst.calcPenalties(starts, ePenalty, lPenalty, operPenalties);
 	penalties = ePenalty + lPenalty;
 	startTime = starts;
+
+	return false;
 }

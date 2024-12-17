@@ -1389,20 +1389,23 @@ vector<unsigned> State::genSchedule(unsigned schedulerType, bool cplex) {
 	bool cycle;
 #endif
 
-	if (schedulerType == 1) {
+	if (cplex || schedulerType == 3) {
 #ifndef NDEBUG
-		cycle=
+		cycle =
 #endif
-		scheduleAsEarly(starts, cplex);
+			scheduleCplex(starts);
 	}
 	else if (schedulerType == 2) {
 #ifndef NDEBUG
 		cycle =
 #endif
-		scheduleDelaying(starts, cplex);
+			scheduleDelaying(starts);
 	}
 	else {
-		scheduleCplex(starts, cplex);
+#ifndef NDEBUG
+		cycle =
+#endif
+			scheduleAsEarly(starts);
 	}
 
 	assert(!cycle);

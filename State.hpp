@@ -86,13 +86,13 @@ public:
 	void cplexSolve(const unsigned maxSecs);
 
 	/* Schedule operations relaxing machine precedence of operations in relaxBlock*/
-	void schedulerCplexRelax(vector<unsigned>& relaxBlock);
+	void schedulerCplexRelax(vector<pair<unsigned, unsigned>>& cands, vector<unsigned>& starts, vector<unsigned>& _job, vector<unsigned>& _mach, vector<unsigned>& mach);
 
 	/* Schedule operations*/ 
-	void scheduleCplex(vector<unsigned>& dists, bool cplex);
+	bool scheduleCplex(vector<unsigned>& dists);
 
 	//set makes with shift to minimize earliness penalties
-	bool scheduleAsEarly(vector<unsigned>& starts, bool cplex);
+	bool scheduleAsEarly(vector<unsigned>& starts);
 
 		//@return: starts
 	vector<unsigned> genSchedule(unsigned schedulerType, bool cplex);
@@ -113,7 +113,7 @@ public:
 		
 	void forcedDelay(vector<unsigned> & starts,vector<unsigned>& lateCands, unsigned & op);
 
-	bool scheduleDelaying(vector<unsigned>& starts, bool cplex);
+	bool scheduleDelaying(vector<unsigned>& starts);
 #ifndef NDEBUG
 	bool isAlloced() const;
 
