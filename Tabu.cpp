@@ -343,8 +343,6 @@ bool Tabu::evolveTabu(State& theState, const Parameters& param, const high_resol
 		if (cplex) cplex = false;
 	}//end while
 
-	cout << tabuIter << endl;
-
 	assert(param.maxMillisecs <= duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count());
 
 	return false;
@@ -363,7 +361,7 @@ void Tabu::tabu(Parameters& param) {
 	State theState;
 	theState.alloc();
 
-	unsigned lowerBound = inst.lowerBoundTkz(indeg, Q);
+	unsigned makesLowerBound = inst.lowerBoundTkz(indeg, Q);
 
 	theState.gifflerThompson();
 
@@ -376,7 +374,6 @@ void Tabu::tabu(Parameters& param) {
 	else {
 		theState.scheduleAsEarly(starts);
 	}
-	
 	
 #ifdef PRINT_ONLY_IS
 	cout << param.instPath << " " << lowerBound << " ";
@@ -396,7 +393,7 @@ void Tabu::tabu(Parameters& param) {
 		throw errorText(theState.toString() + "\n\t\tBad schedule !!!!!", "", "");
 
 #ifdef PRINT_DEFAULT
-	cout << param.instPath << " " << lowerBound << " ";
+	cout << param.instPath << " " << makesLowerBound << " ";
 #endif //PRINT_ONLY_RESULT
 	theState.printPenalties(4);
 }
