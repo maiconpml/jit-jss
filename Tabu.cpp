@@ -264,7 +264,7 @@ bool Tabu::evolveTabu(State& theState, const Parameters& param, const high_resol
 			jumped = false;
 			cands.clear();
 
-			if (trySwapNeigh == 1) {
+			if (trySwapNeigh == param.useSwapAllNIter) {
 				State::fillCandidatesAllSwaps(cands, curState.startTime, curState._job, curState._mach, curState.mach);
 			}
 			else if (curState.lPenalty <= theState.penalties / 4) {

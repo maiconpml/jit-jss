@@ -19,4 +19,5 @@ public:
 	double scaleTime;
 	bool onlyMakesLowerBound;
 	unsigned schedulerType;
+	unsigned useSwapAllNIter;
 };
