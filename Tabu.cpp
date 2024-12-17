@@ -70,13 +70,13 @@ void Tabu::nsp(State& theState, TabuList& tabuList, vector<pair<unsigned, unsign
 			theState.swap(o1, o2);
 			assert(theState.verify());
 
-			if (schedulerType == 3) {
+			if (schedulerType == 4) {
 				cycle = theState.scheduleCplex(starts);
 			}
 			else if (schedulerType == 2) {
 				cycle = theState.scheduleDelaying(starts);
 			}
-			else {
+			else if (schedulerType == 1) {
 				cycle = theState.scheduleAsEarly(starts);
 			}
 
@@ -110,13 +110,13 @@ void Tabu::nsp(State& theState, TabuList& tabuList, vector<pair<unsigned, unsign
 			theState.swap(o1, o2);
 			assert(theState.verify());
 
-			if (schedulerType == 3) {
+			if (schedulerType == 4) {
 				cycle = theState.scheduleCplex(starts);
 			}
 			else if (schedulerType == 2) {
 				cycle = theState.scheduleDelaying(starts);
 			}
-			else {
+			else if (schedulerType == 1) {
 				cycle = theState.scheduleAsEarly(starts);
 			}
 
@@ -164,7 +164,7 @@ void Tabu::nsp(State& theState, TabuList& tabuList, vector<pair<unsigned, unsign
 		tabuList.insert(oldestO1, oldestO2);
 		cands.erase(cands.begin() + oldestFnpSwapPos);
 	}
-	if (schedulerType == 3) {
+	if (schedulerType == 4) {
 #ifndef NDEBUG
 		cycle =
 #endif
@@ -176,7 +176,7 @@ void Tabu::nsp(State& theState, TabuList& tabuList, vector<pair<unsigned, unsign
 #endif
 			theState.scheduleDelaying(starts);
 	}
-	else {
+	else if (schedulerType == 1) {
 #ifndef NDEBUG
 		cycle =
 #endif
@@ -229,14 +229,12 @@ bool Tabu::evolveTabu(State& theState, const Parameters& param, const high_resol
 	// 1 initiatizations
 	TabuList oldTabuList;
 	TabuList tabuList(param.tenure);
-	//unsigned lowerBound = inst.lowerBoundTkz(indeg, Q);
 	JumpList jumpList(param.bjSize);
 
 	// 2 main loop
 	while (param.maxMillisecs > duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count()) {
 		tabuIter++;
 		noImproveIters++;
-		//cout << tabuIter << endl;
 
 		//STEP Checking for cycles
 		penaltiesCycleDetected = State::detectRepeat(oldValues, posCurPenalties, cycleLastPos, cycleL, curState.penalties, newBestFound, param.maxD, maxLen); //PENAL alt makes
@@ -261,7 +259,6 @@ bool Tabu::evolveTabu(State& theState, const Parameters& param, const high_resol
 				assert(!cands.empty());
 			}
 			else { //Stop -> no more states in jump list
-				cout << tabuIter << endl;
 				return false;
 			}
 		}
@@ -295,10 +292,25 @@ bool Tabu::evolveTabu(State& theState, const Parameters& param, const high_resol
 		}
 
 		//STEP Go to neighbour			
-		if (!cands.empty())
-			nsp(curState, tabuList, cands, theState.penalties, starts, indeg, Q, param.schedulerType, cplex);
-		else
-			emptyneighborhood = true;
+
+		if(!cplex){
+			if (!cands.empty()) {
+				if(param.schedulerType == 3){
+					if (curState.lPenalty >= curState.ePenalty) {
+						nsp(curState, tabuList, cands, theState.penalties, starts, indeg, Q, 1);
+					}
+					else {
+						nsp(curState, tabuList, cands, theState.penalties, starts, indeg, Q, 2);
+					}
+				}
+				else{
+					nsp(curState, tabuList, cands, theState.penalties, starts, indeg, Q, param.schedulerType);
+				}
+			}
+			else {
+				emptyneighborhood = true;
+			}
+		}
 
 		//STEP last iter new best was found? store oldState with paths not taken
 		if (newBestFound) {
@@ -359,11 +371,11 @@ void Tabu::tabu(Parameters& param) {
 	unsigned lowerBound = inst.lowerBoundTkz(indeg, Q);
 
 	theState.gifflerThompson();
-	
-	if (param.schedulerType == 3) {
+
+	if (param.schedulerType == 4) {
 		theState.scheduleCplex(starts);
 	}
-	else if (param.schedulerType == 2) {
+	else if (param.schedulerType == 2 || param.schedulerType == 3) {
 		theState.scheduleDelaying(starts);
 	}
 	else {
@@ -385,11 +397,11 @@ void Tabu::tabu(Parameters& param) {
 
 	theState.millisecsFound = duration_cast<milliseconds>(high_resolution_clock::now() - tpStart).count();
 
-	if (!theState.verifySchedule(param.schedulerType, true))
+	if (!theState.verifySchedule(4))
 		throw errorText(theState.toString() + "\n\t\tBad schedule !!!!!", "", "");
 
 #ifdef PRINT_DEFAULT
 	cout << param.instPath << " " << lowerBound << " ";
 #endif //PRINT_ONLY_RESULT
-	theState.printPenalties(param.schedulerType);
+	theState.printPenalties(4);
 }

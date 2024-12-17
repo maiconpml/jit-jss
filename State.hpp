@@ -95,9 +95,9 @@ public:
 	bool scheduleAsEarly(vector<unsigned>& starts);
 
 		//@return: starts
-	vector<unsigned> genSchedule(unsigned schedulerType, bool cplex);
+	vector<unsigned> genSchedule(unsigned schedulerType);
 
-	bool verifySchedule(unsigned schedulerType, bool cplex);
+	bool verifySchedule(unsigned schedulerType);
 
 	void printPenalties(unsigned schedulerType);
 

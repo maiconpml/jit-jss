@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
 			("scaleTime", po::value<double>()->default_value(1.0), "Change received time, for testing. (JSP)")
 			("searchType", po::value<string>()->default_value("iteratedGreedy"), "Type of search: iteratedGreedy - tabuSearch")
 			("onlyMakesLowerBound", po::value<bool>()->default_value(false), "To get lower bound values")
-			("schedulerType", po::value<unsigned>()->default_value(1), "Type of scheduler used: 1 - early as possible (fastest), 2 - delaying when possible (better schedule but slower, 3 - cplex (slowest but optimal)")
+			("schedulerType", po::value<unsigned>()->default_value(1), "Type of scheduler used: 1 - early as possible (fastest), 2 - delaying when possible (better schedule but slower), 3 - 1 and 2 mixed (1 when tard penalties are dominating and 2 when earl penalties are dominating, 4 - cplex (slowest but optimal)")
 			;
 		po::positional_options_description pod;
 		pod.add("instPath", 1); //instance is positional as well
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
 		param.searchTypeStr = vm["searchType"].as<string>();
 		param.onlyMakesLowerBound = vm["onlyMakesLowerBound"].as<bool>();
 		param.schedulerType = vm["schedulerType"].as<unsigned>();
-		if (param.schedulerType < 1 || param.schedulerType > 3) {
+		if (param.schedulerType < 1 || param.schedulerType > 4) {
 			cout << "Invalid type for schedulerType" << endl;
 			return 0;
 		}
