@@ -38,9 +38,9 @@ maxC -  number of repeats of cycle to force backjump (default: 2)\
 timeLog -  Show time of each new best sollution found (default: true)\
 scaleTime -  Change received time, for testing. (JSP) (default: 1.0)\
 onlyMakesLowerBound -  To get lower bound values (default: false)\
-schedulerType -  Type of scheduler used: 1 - early as possible (fastest), 2 - delaying when possible (better schedule but slower), 3 - 1 and 2 mixed (1 when tard penalties are dominating and 2 when earl penalties are dominating, 4 - cplex (slowest but optimal) (default: 1)
-useSwapAllNIter - Number of iterations without improvement to use neighborhood Swap All (default: 1)
-useCplexRelaxRatio - Ratio between earliness penalty and tardiness penalty to use neighborhood Cplex Relax (default: 0.25)
+schedulerType -  Type of scheduler used: 1 - early as possible (fastest), 2 - delaying when possible (better schedule but slower), 3 - 1 and 2 mixed (1 when tard penalties are dominating and 2 when earl penalties are dominating, 4 - cplex (slowest but optimal) (default: 1)\
+useSwapAllNIter - Number of iterations without improvement to use neighborhood Swap All (default: 1)\
+useCplexRelaxRatio - Ratio between earliness penalty and tardiness penalty to use neighborhood Cplex Relax (default: 0.25)\
 
 ## Tabu Search
 
